@@ -12,7 +12,7 @@
 	5. I am looking for businesses who took loans greater than $50,000.00
 5. Comerica Bank and FIfth Third Bank Merged.  SO approx 75 branches (55 comerica branches and 20 fifth third branches) are closing. 
 6. I am going to narrow the data down with the PPP loan data and the bank closure data to find business clients who used comerica as a lender, and are within 2 miles of a comerica bank or fifth third bank branch that are closing. 
-
+![[Results-Table.csv]]
 # What you dont need to do
 1. I dont need any data besides the data that i've requested in the what you need to do area.
 2. i do not need any placeholder data,  if you cant find the information, i'd rather you just say so.
