@@ -16,9 +16,21 @@ Vercel configuration:
 
 - Framework preset: Next.js
 - Root directory: `prospect-app`
+- Node.js version: 22.x
 - Build command: `npm run build`
 - Install command: `npm ci`
 - Output: Next.js default
+- Environment variables: none
+
+Pre-deployment verification:
+
+```bash
+python3 validate_csv.py
+cd prospect-app
+npm ci
+npm run verify
+npm audit --omit=dev
+```
 
 ## Notion dashboard
 
@@ -40,4 +52,4 @@ Recommended future pattern: keep the Next.js app as the source lookup interface 
 
 ## Privacy and access
 
-The source data is public, but the tool expresses Amanda's prospecting strategy. Deploy privately or use Vercel deployment protection if the workflow should remain internal. Do not add employee notes, customer information, or outreach history to the public JSON bundle.
+The source data is public, but the tool expresses Amanda's prospecting strategy. Deploy privately or use Vercel Deployment Protection if the workflow should remain internal. The current application bundles its dataset into browser-delivered JavaScript; deployment protection, not an unlinked URL, is the privacy boundary. Do not add employee notes, customer information, or outreach history to the bundled JSON.

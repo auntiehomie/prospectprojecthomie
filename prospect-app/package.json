@@ -4,10 +4,16 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "npm run check-data",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "sync-data": "node scripts/sync-prospects.mjs"
+    "sync-data": "node scripts/sync-prospects.mjs",
+    "check-data": "node scripts/check-prospects.mjs",
+    "verify": "npm run lint && npm run build"
+  },
+  "engines": {
+    "node": "22.x"
   },
   "dependencies": {
     "next": "16.2.12",
@@ -23,5 +29,9 @@
     "eslint-config-next": "16.2.12",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "overrides": {
+    "postcss": "8.5.25",
+    "sharp": "0.35.3"
   }
 }

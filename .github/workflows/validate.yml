@@ -21,7 +21,7 @@ jobs:
           python-version: '3.12'
 
       - name: Validate CSV files
-        run: python validate_csv.py
+        run: python3 validate_csv.py
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -33,6 +33,14 @@ jobs:
       - name: Install app dependencies
         working-directory: prospect-app
         run: npm ci
+
+      - name: Audit production dependencies
+        working-directory: prospect-app
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Verify bundled prospect data
+        working-directory: prospect-app
+        run: npm run check-data
 
       - name: Lint app
         working-directory: prospect-app

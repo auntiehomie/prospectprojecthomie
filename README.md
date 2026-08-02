@@ -36,6 +36,7 @@ The included Next.js app turns the researched CSV into a self-service lookup too
 
 ```bash
 cd prospect-app
+nvm use
 npm ci
 npm run dev
 ```
@@ -89,6 +90,8 @@ npm run sync-data
 ## Deployment
 
 Recommended deployment is Vercel with `prospect-app` as the root directory. See `DEPLOYMENT-OPTIONS.md` for the decision and privacy notes. No database or runtime API key is required for the current read-only app.
+
+Use Node.js 22.x in Vercel, leave the output directory at the Next.js default, and enable Vercel Deployment Protection if the prospecting workflow should remain private. The app also sends `noindex` metadata to reduce accidental search-engine discovery.
 
 ## Data-quality snapshot
 
