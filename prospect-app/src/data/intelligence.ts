@@ -1,6 +1,7 @@
 // ─── Prospect Intelligence Engine v2 ───────────────────────────────
-// Self-contained, explainable product-fit recommendation engine.
-// Relies only on public prospect fields. No external APIs, no fabricated research.
+// Self-contained, explainable PPP-seed prioritization engine.
+// This baseline relies only on public prospect fields; source-attributed research
+// and optional catalog comparison live in the evidence workspace.
 //
 // Architecture:
 //  1. Industry classifier based on NAICS prefix
@@ -143,7 +144,7 @@ export function scoreProductFit(prospect: Prospect): ProductFit {
   // ── Factor 1: Industry fit (weight: 0.30) ──
   const industryScore = baseFit;
 
-  // ── Factor 2: Loan relationship value (weight: 0.30) ──
+  // ── Factor 2: Historical PPP amount seed signal (weight: 0.30) ──
   // $0 → $1M+  maps to 0→1
   const loanScore = clampScore(loanAmount, 50_000, 1_000_000);
 
@@ -165,11 +166,11 @@ export function scoreProductFit(prospect: Prospect): ProductFit {
 
   let summary: string;
   if (tier === 'high') {
-    summary = `Strong product fit — ${industryLabel} business with substantial PPP history, close branch proximity, and reachable contacts.`;
+    summary = `High-priority PPP seed — ${industryLabel} business with a larger historical PPP record, close branch proximity, and reachable contacts. Add current evidence before discussing products.`;
   } else if (tier === 'medium') {
-    summary = `Moderate product fit — ${industryLabel} business. Some factors are strong; verify contact details and specific needs before outreach.`;
+    summary = `Medium-priority PPP seed — ${industryLabel} business. Add current operating, ownership, and needs evidence before outreach.`;
   } else {
-    summary = `Lower product fit — ${industryLabel} business. May still be worth contacting if other signals emerge during enrichment.`;
+    summary = `Lower-priority PPP seed — ${industryLabel} business. New source-attributed evidence may change its priority.`;
   }
 
   const factors: FitFactor[] = [
@@ -183,10 +184,10 @@ export function scoreProductFit(prospect: Prospect): ProductFit {
       score: Math.round(loanScore * 100) / 100,
       detail:
         loanAmount >= 500_000
-          ? `Large PPP loan (${formatCurrency(loanAmount)}) — high relationship value`
+          ? `Larger historical PPP loan (${formatCurrency(loanAmount)}) — stronger seed-size signal only`
           : loanAmount >= 100_000
-            ? `Moderate PPP loan (${formatCurrency(loanAmount)}) — meaningful relationship`
-            : `Smaller PPP loan (${formatCurrency(loanAmount)}) — lower relationship value`,
+            ? `Moderate historical PPP loan (${formatCurrency(loanAmount)}) — seed-size signal only`
+            : `Smaller historical PPP loan (${formatCurrency(loanAmount)}) — seed-size signal only`,
     },
     {
       label: 'Proximity',
@@ -397,9 +398,9 @@ export function aggregateStats(reports: IntelligenceReport[]) {
           ) / reports.length,
         )
       : 0;
-  const confirmedRel = reports.filter(
+  const historicalComericaPpp = reports.filter(
     (r) => r.comericaEvidence.some((e) => e.confidence === 'confirmed'),
   ).length;
 
-  return { highFit, mediumFit, lowFit, avgEnrichment, confirmedRel, total: reports.length };
+  return { highFit, mediumFit, lowFit, avgEnrichment, historicalComericaPpp, total: reports.length };
 }

@@ -200,3 +200,34 @@ footer { border-top: 1px solid var(--line); background: white; color: var(--mute
   td { padding-left: 88px; }
   td::before { width: 80px; }
 }
+
+/* ── Source-agnostic evidence workspace ── */
+.evidence-workspace { display: grid; gap: 24px; padding-top: 4px; border-top: 1px solid var(--line); }
+.evidence-form-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.evidence-wide { grid-column: span 2; }
+.field textarea { width: 100%; border: 1px solid #cdd9d2; border-radius: 11px; background: white; color: var(--ink); padding: 12px; outline: none; resize: vertical; font: inherit; line-height: 1.5; }
+.field textarea:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(15,107,76,.12); }
+.field input[type="file"] { height: auto; min-height: 44px; padding: 9px 12px; }
+.evidence-actions { display: flex; align-items: end; flex-wrap: wrap; gap: 10px; }
+.evidence-message { margin: 0; padding: 10px 12px; background: #f3f7f5; border-left: 3px solid var(--green); border-radius: 8px; color: var(--muted); font-size: .84rem; line-height: 1.5; }
+.file-button { display: inline-flex; align-items: center; cursor: pointer; }
+.file-button input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.evidence-prewrap { white-space: pre-wrap; overflow-wrap: anywhere; }
+.evidence-card-actions { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding-top: 6px; color: var(--muted); font-size: .75rem; }
+.evidence-card-actions a { color: var(--green); font-weight: 800; text-decoration: none; }
+.evidence-card-actions button { border: 0; background: transparent; color: #9c3d36; padding: 0; font: inherit; font-weight: 700; }
+.llm-compare { padding: 18px; border: 1px solid #d5dfda; border-radius: 14px; background: #fbfcfb; }
+.access-code-field { min-width: min(100%, 260px); }
+.llm-results { display: grid; gap: 10px; }
+.llm-result-card { padding: 15px; border: 1px solid var(--line); border-radius: 12px; background: white; }
+.llm-result-card p { margin: 8px 0 0; color: var(--muted); font-size: .83rem; line-height: 1.55; }
+.llm-result-card .intel-tier-badge { background: var(--mint); color: var(--green-dark); }
+
+@media (max-width: 900px) {
+  .evidence-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .evidence-form-grid { grid-template-columns: 1fr; }
+  .evidence-wide { grid-column: auto; }
+  .evidence-actions > .button, .evidence-actions > .field { width: 100%; }
+}

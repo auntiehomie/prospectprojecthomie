@@ -43,16 +43,16 @@ export default function Home() {
             <p className="eyebrow">Comerica × Fifth Third branch transition</p>
             <h1>Find nearby businesses that may need a new banking relationship.</h1>
             <p className="hero-copy">
-              Search forgiven PPP borrowers near closing branches in Farmington Hills and West Bloomfield. Filter, prioritize, and export a focused outreach list.
+              Start with historical PPP borrowers, then add registry findings, official-site facts, news, social signals, and your own research. Compare cited evidence with a reviewable Flagstar product catalog.
             </p>
           </div>
           <aside className="method-card">
-            <span>Current qualification</span>
+            <span>Evidence workflow</span>
             <ul>
-              <li>Comerica PPP lender</li>
-              <li>Loan of at least $50,000</li>
-              <li>Forgiveness recorded</li>
-              <li>Within 2 miles of a closing branch</li>
+              <li>PPP record is one starting source</li>
+              <li>Add cited public research or notes</li>
+              <li>Keep confidence and review status</li>
+              <li>Use LLM matches only as reviewed drafts</li>
             </ul>
           </aside>
         </div>
@@ -78,7 +78,7 @@ export default function Home() {
             <h2>Use as a qualified lead list, not a live business registry.</h2>
           </div>
           <p>
-            PPP records are historical SBA FOIA data. Contact details were gathered from public sources and may change. Records marked as relocated, closed, mismatched, or unverified should be checked before outreach.
+            PPP records are historical SBA FOIA data, not proof of a current bank relationship. Added research remains source-attributed and should be reviewed for entity match, freshness, lawful use, and accuracy before outreach. Product matches are discovery prompts—not approvals, pricing, underwriting, or financial advice.
           </p>
         </section>
       </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
+import EvidenceWorkspace from '@/components/EvidenceWorkspace';
 import type { Prospect } from '@/data/types';
 import {
   generateReport,
@@ -86,7 +87,7 @@ export default function ProspectIntelligence({ prospect, allProspects }: Props) 
         <div className="intel-header">
           <div>
             <p className="eyebrow">Intelligence v2</p>
-            <h2>Product-fit recommendations</h2>
+            <h2>PPP-seed priority + cited intelligence</h2>
           </div>
         </div>
 
@@ -109,14 +110,14 @@ export default function ProspectIntelligence({ prospect, allProspects }: Props) 
               <span>avg enrichment</span>
             </div>
             <div className="intel-stat">
-              <strong>{stats.confirmedRel}/{stats.total}</strong>
-              <span>Comerica confirmed</span>
+              <strong>{stats.historicalComericaPpp}/{stats.total}</strong>
+              <span>historical Comerica PPP</span>
             </div>
           </div>
         ) : null}
 
         <div className="intel-placeholder">
-          <p>Select a business from the table below to see detailed product-fit intelligence, evidence, and enrichment status.</p>
+          <p>Select a business below to review the PPP-seed priority, add cited evidence from other sources, and optionally compare that evidence with the draft product catalog.</p>
         </div>
 
         {feedbackEntries.length > 0 ? (
@@ -136,6 +137,7 @@ export default function ProspectIntelligence({ prospect, allProspects }: Props) 
   }
 
   // ── Detail view ──
+  if (!prospect) return null;
   const tierBadge = TIER_BADGES[report.productFit.tier];
 
   return (
@@ -143,7 +145,7 @@ export default function ProspectIntelligence({ prospect, allProspects }: Props) 
       <div className="intel-header">
         <div>
           <p className="eyebrow">Intelligence v2 — {report.businessName}</p>
-          <h2>Product-fit & evidence</h2>
+          <h2>Seed priority & evidence</h2>
         </div>
         <span
           className="intel-tier-badge"
@@ -153,12 +155,12 @@ export default function ProspectIntelligence({ prospect, allProspects }: Props) 
         </span>
       </div>
 
-      {/* ── Product-fit summary ── */}
+      {/* ── PPP-seed prioritization summary ── */}
       <p className="intel-summary">{report.productFit.summary}</p>
 
       {/* ── Fit factors (explainable breakdown) ── */}
       <div className="intel-section">
-        <p className="intel-section-label">Fit factor breakdown</p>
+        <p className="intel-section-label">PPP-seed factor breakdown</p>
         <div className="intel-factors">
           {report.productFit.factors.map((factor) => (
             <div key={factor.label} className="intel-factor">
@@ -231,6 +233,9 @@ export default function ProspectIntelligence({ prospect, allProspects }: Props) 
           ))}
         </ul>
       </div>
+
+      {/* ── Source-agnostic research intake + optional LLM comparison ── */}
+      <EvidenceWorkspace key={`${prospect['Business Name']}|${prospect.Address}|${prospect['Zip Code']}`} prospect={prospect} />
 
       {/* ── Local feedback capture ── */}
       <div className="intel-section">
