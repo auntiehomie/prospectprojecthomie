@@ -19,8 +19,10 @@ Vercel configuration:
 - Node.js version: 22.x
 - Build command: `npm run build`
 - Install command: `npm ci`
-- Output: Next.js default
+- Output directory: blank / Next.js default
 - Environment variables: none
+
+`prospect-app/vercel.json` pins the framework to Next.js and clears any stale Output Directory override inherited from the Vercel dashboard. Do not set the Output Directory to `public` or `.next`; Vercel packages Next.js output through its framework adapter.
 
 Pre-deployment verification:
 

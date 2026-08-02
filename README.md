@@ -91,7 +91,7 @@ npm run sync-data
 
 Recommended deployment is Vercel with `prospect-app` as the root directory. See `DEPLOYMENT-OPTIONS.md` for the decision and privacy notes. No database or runtime API key is required for the current read-only app.
 
-Use Node.js 22.x in Vercel, leave the output directory at the Next.js default, and enable Vercel Deployment Protection if the prospecting workflow should remain private. The app also sends `noindex` metadata to reduce accidental search-engine discovery.
+Use Node.js 22.x in Vercel, leave the output directory blank at the Next.js default, and enable Vercel Deployment Protection if the prospecting workflow should remain private. The committed `prospect-app/vercel.json` selects Next.js and clears stale output-directory overrides. The app also sends `noindex` metadata to reduce accidental search-engine discovery.
 
 ## Data-quality snapshot
 

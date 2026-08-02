@@ -45,7 +45,9 @@ Recommended: import the repository into Vercel and set the root directory to `pr
 - Node.js version: 22.x
 - Install command: `npm ci`
 - Build command: `npm run build`
-- Output directory: leave at the Next.js default
+- Output directory: leave blank (the committed `vercel.json` clears stale overrides)
 - Environment variables: none
 
 The deployment is read-only and does not require runtime secrets or a database. The prospect dataset and outreach strategy are included in the browser-delivered app, so enable Vercel Deployment Protection if the site should remain private.
+
+Do not set the Output Directory to `public` or `.next`. Vercel's Next.js adapter packages the framework output automatically; a manual static-output override causes deployment to fail after an otherwise successful build.
