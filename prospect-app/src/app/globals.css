@@ -94,6 +94,74 @@ td a { color: var(--green); text-decoration: none; margin-bottom: 5px; }
 footer { border-top: 1px solid var(--line); background: white; color: var(--muted); font-size: .86rem; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
 
+/* ── Intelligence Panel v2 ── */
+.intelligence-panel { border: 1px solid var(--line); background: var(--card); border-radius: 20px; box-shadow: var(--shadow); padding: 26px; display: grid; gap: 20px; }
+.intel-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.intel-tier-badge { padding: 6px 14px; border-radius: 999px; font-weight: 800; font-size: .82rem; white-space: nowrap; }
+.intel-summary { margin: 0; color: var(--ink); line-height: 1.65; font-size: .95rem; font-weight: 500; }
+.intel-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
+.intel-stat { padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: #f7faf8; text-align: center; }
+.intel-stat strong { display: block; font-family: Georgia, 'Times New Roman', serif; font-size: 1.55rem; letter-spacing: -.03em; }
+.intel-stat span { font-size: .78rem; color: var(--muted); font-weight: 700; }
+.intel-stat-high { border-color: #b8dec9; background: var(--mint); }
+.intel-stat-high strong { color: var(--green-dark); }
+.intel-stat-med { border-color: #f0e0b0; background: #fef9ed; }
+.intel-stat-med strong { color: #8a6500; }
+.intel-stat-low { border-color: #dfe5e1; }
+.intel-placeholder { padding: 16px; text-align: center; color: var(--muted); font-size: .9rem; }
+
+.intel-section { display: grid; gap: 12px; }
+.intel-section-label { margin: 0; font-weight: 800; font-size: .82rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.intel-badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: .67rem; font-weight: 800; text-transform: none; letter-spacing: .02em; }
+.intel-badge-confirmed { background: #dff3e9; color: #084a35; }
+.intel-badge-done { background: #dff3e9; color: #084a35; }
+.intel-badge-partial { background: #fef3d6; color: #7a5d00; }
+
+.intel-factors { display: grid; gap: 14px; }
+.intel-factor { display: grid; gap: 5px; }
+.intel-factor-head { display: flex; justify-content: space-between; align-items: center; }
+.intel-factor-label { font-weight: 700; font-size: .88rem; }
+.intel-factor-score { font-weight: 800; font-size: .82rem; color: var(--green); }
+.intel-factor-bar-wrap { height: 8px; background: #edf2ef; border-radius: 999px; overflow: hidden; }
+.intel-factor-bar { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--green), #28a073); transition: width .4s ease; }
+.intel-factor-detail { margin: 0; font-size: .8rem; color: var(--muted); line-height: 1.45; }
+
+.intel-evidence-list { display: grid; gap: 10px; }
+.intel-evidence-item { padding: 14px; border: 1px solid #edf1ef; border-radius: 12px; background: #fafbfa; display: grid; gap: 4px; }
+.intel-evidence-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.intel-evidence-head strong { font-size: .88rem; }
+.intel-confidence-pill { padding: 2px 10px; border-radius: 999px; font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .03em; }
+.intel-evidence-source { margin: 0; font-size: .75rem; color: var(--green); font-weight: 700; }
+.intel-evidence-detail { margin: 0; font-size: .82rem; color: var(--muted); line-height: 1.5; }
+
+.intel-enrichment-bar-wrap { height: 10px; background: #edf2ef; border-radius: 999px; overflow: hidden; }
+.intel-enrichment-bar { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--green), #28a073); transition: width .4s ease; }
+.intel-checklist { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.intel-checklist li { display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: center; padding: 6px 10px; border-radius: 8px; font-size: .85rem; }
+.intel-checklist li.checked { background: #f7faf8; }
+.intel-checkmark { font-weight: 800; text-align: center; font-size: .95rem; }
+.intel-checklist li.checked .intel-checkmark { color: var(--green); }
+.intel-checklist li:not(.checked) .intel-checkmark { color: #c5cec9; }
+.intel-check-status { font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; font-weight: 800; padding: 2px 8px; border-radius: 999px; }
+.intel-check-status.done { background: #dff3e9; color: #084a35; }
+.intel-check-status.missing { background: #f3f4f3; color: #89958f; }
+.intel-muted { margin: 0; color: #89958f; font-size: .84rem; line-height: 1.5; }
+
+.intel-feedback-form { display: grid; gap: 12px; }
+.intel-agreement-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.intel-agreement-btn { border: 1px solid #cdd9d2; border-radius: 9px; padding: 8px 13px; font-size: .81rem; font-weight: 700; background: white; color: var(--ink); cursor: pointer; transition: background .15s; }
+.intel-agreement-btn:hover { background: #edf2ef; }
+.intel-agreement-btn.selected { background: var(--mint); border-color: var(--green); color: var(--green-dark); }
+.intel-feedback-textarea { width: 100%; border: 1px solid #cdd9d2; border-radius: 11px; padding: 12px; font: inherit; font-size: .85rem; resize: vertical; outline: none; }
+.intel-feedback-textarea:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(15,107,76,.12); }
+.intel-feedback-confirmed { padding: 16px; border-radius: 12px; background: var(--mint); color: var(--green-dark); font-weight: 700; font-size: .9rem; text-align: center; }
+.intel-feedback-summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border: 1px solid #edf1ef; border-radius: 12px; background: #fafbfa; font-size: .84rem; font-weight: 700; flex-wrap: wrap; }
+.intel-meta { margin: 0; font-size: .72rem; color: var(--muted); text-align: right; }
+
+/* ── Intelligence toggle in table rows ── */
+.row-selected td { background: #f7faf8; }
+.intel-row-toggle { border: 1px solid var(--green); background: var(--mint); color: var(--green-dark); border-radius: 9px; padding: 7px 10px; font-weight: 800; font-size: .8rem; cursor: pointer; }
+
 @media (max-width: 1050px) {
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
   .filters-grid { grid-template-columns: repeat(3, 1fr); }

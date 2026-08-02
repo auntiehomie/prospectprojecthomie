@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { Prospect, SortConfig } from '@/data/types';
+import ProspectIntelligence from '@/components/ProspectIntelligence';
 
 type Stats = {
   total: number;
@@ -43,6 +44,10 @@ export default function ProspectExplorer({ prospects, zipCodes, branches, stats 
     direction: 'asc',
   });
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [selectedIntelId, setSelectedIntelId] = useState<string | null>(null);
+  const selectedProspect = selectedIntelId
+    ? prospects.find((p) => `${p['Business Name']}-${p.Address}` === selectedIntelId) ?? null
+    : null;
 
   const filtered = useMemo(() => {
     const needle = search.trim().toLowerCase();
@@ -108,6 +113,13 @@ export default function ProspectExplorer({ prospects, zipCodes, branches, stats 
     setContactableOnly(false);
   }
 
+  const handleSelectIntel = useCallback(
+    (id: string) => {
+      setSelectedIntelId((prev) => (prev === id ? null : id));
+    },
+    [],
+  );
+
   function exportCsv() {
     const headers: Array<keyof Prospect> = [
       'Business Name',
@@ -145,6 +157,11 @@ export default function ProspectExplorer({ prospects, zipCodes, branches, stats 
 
   return (
     <>
+      <ProspectIntelligence
+        prospect={selectedProspect}
+        allProspects={selectedProspect ? undefined : prospects}
+      />
+
       <section className="stats-grid" aria-label="Prospect summary">
         <article className="stat-card accent-card">
           <span>Matching prospects</span>
@@ -256,14 +273,16 @@ export default function ProspectExplorer({ prospects, zipCodes, branches, stats 
                 <th>Contact</th>
                 <th>Nearest closing branch</th>
                 <th><span className="sr-only">Details</span></th>
+                <th><span className="sr-only">Intel</span></th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((prospect) => {
                 const id = `${prospect['Business Name']}-${prospect.Address}`;
-                const isOpen = expanded === id;
+                const isOpen = expanded === id || selectedIntelId === id;
+                const isIntelSelected = selectedIntelId === id;
                 return (
-                  <tr key={id} className={isOpen ? 'expanded-row' : ''}>
+                  <tr key={id} className={isIntelSelected ? 'row-selected expanded-row' : isOpen ? 'expanded-row' : ''}>
                     <td data-label="Business">
                       <strong>{prospect['Business Name']}</strong>
                       <span>{prospect.Address}, {prospect.City}, {prospect.State} {prospect['Zip Code']}</span>
@@ -300,6 +319,16 @@ export default function ProspectExplorer({ prospects, zipCodes, branches, stats 
                           <p><b>Notes:</b> {prospect['Contact Note'] || 'No notes'}</p>
                         </div>
                       ) : null}
+                    </td>
+                    <td data-label="Intel">
+                      <button
+                        type="button"
+                        className="intel-row-toggle"
+                        onClick={() => handleSelectIntel(id)}
+                        aria-pressed={isIntelSelected}
+                      >
+                        {isIntelSelected ? 'Intel ▲' : 'Intel ▼'}
+                      </button>
                     </td>
                   </tr>
                 );
