@@ -1,0 +1,29 @@
+# Dependencies
+prospect-app/node_modules/
+
+# Build output
+prospect-app/.next/
+prospect-app/out/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.pyc
+
+# Logs
+*.log
+
+# SBA source downloads (large)
+sba_source/
+
+# SSH keys (never commit)
+*.pem
+id_*

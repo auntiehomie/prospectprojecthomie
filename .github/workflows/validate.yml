@@ -1,0 +1,43 @@
+name: Validate data and app
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate CSV files
+        run: python validate_csv.py
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: prospect-app/package-lock.json
+
+      - name: Install app dependencies
+        working-directory: prospect-app
+        run: npm ci
+
+      - name: Lint app
+        working-directory: prospect-app
+        run: npm run lint
+
+      - name: Build app
+        working-directory: prospect-app
+        run: npm run build
