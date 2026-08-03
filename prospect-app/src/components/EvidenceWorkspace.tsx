@@ -18,6 +18,7 @@ import {
   type WebResearchResult,
 } from '@/data/knowledge';
 import { FLAGSTAR_PRODUCT_CATALOG } from '@/data/products';
+import ProspectResearchControls from '@/components/ProspectResearchControls';
 
 type Props = { prospect: Prospect };
 
@@ -243,6 +244,8 @@ export default function EvidenceWorkspace({ prospect }: Props) {
 
   return (
     <div className="evidence-workspace">
+      <ProspectResearchControls prospect={prospect} evidence={allEvidence} />
+
       <div className="intel-section">
         <p className="intel-section-label">Evidence intake</p>
         <p className="intel-muted">

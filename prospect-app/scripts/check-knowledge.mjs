@@ -19,6 +19,7 @@ function loadModule(path, exportNames) {
 const { FLAGSTAR_PRODUCT_CATALOG } = loadModule('src/data/products.ts', ['FLAGSTAR_PRODUCT_CATALOG']);
 const { validateEvidenceDraft, validateLlmAnalysis, validateWebResearch, normalizeUrl } = loadModule('src/data/knowledge.ts', ['validateEvidenceDraft', 'validateLlmAnalysis', 'validateWebResearch', 'normalizeUrl']);
 const { DEFAULT_OPENROUTER_MODEL_CHAIN, resolveOpenRouterModelChain } = loadModule('src/data/model-routing.ts', ['DEFAULT_OPENROUTER_MODEL_CHAIN', 'resolveOpenRouterModelChain']);
+const { buildDiscoveryLinks, summarizeQualification, assessEvidenceQuality, assessOutreachReadiness } = loadModule('src/data/prospect-research.ts', ['buildDiscoveryLinks', 'summarizeQualification', 'assessEvidenceQuality', 'assessOutreachReadiness']);
 
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
 assert(DEFAULT_OPENROUTER_MODEL_CHAIN[0].endsWith(':free'), 'Cost-first model chain must start with the free model.');
@@ -82,4 +83,41 @@ try {
 } catch { uncitedResearchFailed = true; }
 assert(uncitedResearchFailed, 'Web findings without returned citations must fail.');
 
-console.log(`Knowledge validation passed (${ids.length} draft product categories).`);
+const prospect = {
+  'Business Name': 'Example Michigan Business LLC', Address: '123 Main St', City: 'Farmington Hills', State: 'MI', 'Zip Code': '48334',
+  'PPP Lender': 'Example Bank', 'Total PPP Loan Amount': '$250,000', 'Total Forgiveness Amount': '$250,000', 'NAICS Code': '541110',
+  'Nearest Closing Branch': 'Example branch', 'Nearest Branch Address': '456 Branch Rd', 'Distance to Closing Branch (mi)': '0.5',
+  Phone: '248-555-0100', Email: 'info@example.test', 'Contact Source': 'Official website', 'Contact Note': 'Public business contact.',
+};
+const discoveryLinks = buildDiscoveryLinks(prospect);
+assert(discoveryLinks.some((link) => link.id === 'x-search'), 'Discovery hub must include X public search.');
+assert(discoveryLinks.some((link) => link.id === 'instagram-search'), 'Discovery hub must include Instagram public discovery.');
+assert(discoveryLinks.some((link) => link.id === 'facebook-search'), 'Discovery hub must include Facebook public discovery.');
+assert(discoveryLinks.some((link) => link.id === 'gdelt-news'), 'Discovery hub must include GDELT news.');
+assert(discoveryLinks.some((link) => link.id === 'michigan-lara'), 'Discovery hub must include Michigan LARA.');
+assert(discoveryLinks.every((link) => link.url.startsWith('https://')), 'Discovery links must use HTTPS.');
+
+const unverifiedQualification = summarizeQualification(prospect, []);
+assert(unverifiedQualification.revenueStatus === 'unverified', 'PPP amount and contacts must not verify annual revenue.');
+assert(unverifiedQualification.reviewPriority === 'review_first', 'Scale/contact signals may prioritize review without verifying revenue.');
+const revenueEvidence = [{
+  id: 'revenue-1', prospectId: 'example', sourceType: 'official_website', sourceName: 'Public annual report', sourceUrl: 'https://example.test/report',
+  title: 'Annual revenue above threshold', text: 'Annual revenue exceeds $150,000. Entity-match reason: exact name and domain match.',
+  observedAt: '2026-08-03', addedAt: '2026-08-03T00:00:00.000Z', verificationStatus: 'confirmed', confidence: 'high',
+}];
+assert(summarizeQualification(prospect, revenueEvidence).revenueStatus === 'verified_over_150k', 'High-confidence confirmed source-attributed revenue evidence should support the threshold state.');
+assert(summarizeQualification(prospect, [{ ...revenueEvidence[0], sourceType: 'social' }]).revenueStatus === 'unverified', 'Social claims alone must not verify revenue.');
+assert(summarizeQualification(prospect, [{ ...revenueEvidence[0], sourceUrl: '' }]).revenueStatus === 'unverified', 'Revenue evidence without a source URL must remain unverified.');
+assert(summarizeQualification(prospect, [{ ...revenueEvidence[0], confidence: 'medium' }]).revenueStatus === 'unverified', 'Revenue evidence below high confidence must remain unverified.');
+
+const currentQuality = assessEvidenceQuality(revenueEvidence[0], new Date('2026-08-03T12:00:00Z'));
+assert(currentQuality.freshness === 'current', 'New official-site evidence should be current.');
+assert(currentQuality.entityMatchDocumented === true, 'Entity-match reasoning should be detected.');
+const historicalQuality = assessEvidenceQuality({ ...revenueEvidence[0], id: 'ppp', sourceType: 'ppp_foia', observedAt: '2020-06-01' }, new Date('2026-08-03T12:00:00Z'));
+assert(historicalQuality.freshness === 'unknown', 'PPP evidence should stay labeled as a historical program record.');
+
+assert(assessOutreachReadiness({ contactState: 'unverified', suppressionStatus: 'unknown', humanReviewed: false, notes: '' }).ready === false, 'Unverified contact must block outreach readiness.');
+assert(assessOutreachReadiness({ contactState: 'verified_public', suppressionStatus: 'do_not_contact', humanReviewed: true, notes: '' }).ready === false, 'Suppression must block outreach readiness.');
+assert(assessOutreachReadiness({ contactState: 'verified_public', suppressionStatus: 'clear', humanReviewed: true, notes: '' }).ready === true, 'Verified public contact plus clear suppression and human review may be ready for human-led outreach.');
+
+console.log(`Knowledge validation passed (${ids.length} draft product categories; ${discoveryLinks.length} public discovery paths).`);
