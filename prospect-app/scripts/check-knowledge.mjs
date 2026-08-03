@@ -18,8 +18,14 @@ function loadModule(path, exportNames) {
 
 const { FLAGSTAR_PRODUCT_CATALOG } = loadModule('src/data/products.ts', ['FLAGSTAR_PRODUCT_CATALOG']);
 const { validateEvidenceDraft, validateLlmAnalysis, validateWebResearch, normalizeUrl } = loadModule('src/data/knowledge.ts', ['validateEvidenceDraft', 'validateLlmAnalysis', 'validateWebResearch', 'normalizeUrl']);
+const { DEFAULT_OPENROUTER_MODEL_CHAIN, resolveOpenRouterModelChain } = loadModule('src/data/model-routing.ts', ['DEFAULT_OPENROUTER_MODEL_CHAIN', 'resolveOpenRouterModelChain']);
 
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
+assert(DEFAULT_OPENROUTER_MODEL_CHAIN[0].endsWith(':free'), 'Cost-first model chain must start with the free model.');
+assert(DEFAULT_OPENROUTER_MODEL_CHAIN[1] === 'openai/gpt-5.6-sol', 'Research/orchestration fallback must be GPT-5.6 Sol.');
+assert(DEFAULT_OPENROUTER_MODEL_CHAIN[2] === 'deepseek/deepseek-v4-pro', 'Coding/execution fallback must be DeepSeek V4 Pro.');
+const overrideChain = resolveOpenRouterModelChain('openrouter/test/one, test/two, test/one');
+assert(overrideChain.join(',') === 'test/one,test/two', 'Model-chain overrides must normalize and deduplicate IDs.');
 const ids = FLAGSTAR_PRODUCT_CATALOG.products.map((product) => product.id);
 assert(new Set(ids).size === ids.length, 'Product IDs must be unique.');
 assert(FLAGSTAR_PRODUCT_CATALOG.status === 'draft', 'Catalog must remain draft until human-approved sources are recorded.');

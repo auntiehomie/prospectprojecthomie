@@ -4,6 +4,7 @@ import {
   validateWebResearch,
   type WebResearchResult,
 } from '@/data/knowledge';
+import { resolveOpenRouterModelChain } from '@/data/model-routing';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -45,7 +46,12 @@ export async function POST(request: Request) {
       return Response.json({ error: 'Request is too large.' }, { status: 413, headers: noStoreHeaders() });
     }
     const body = validateRequest(JSON.parse(raw) as unknown);
-    const model = process.env.OPENROUTER_RESEARCH_MODEL || process.env.OPENROUTER_COMPARE_MODEL || 'openai/gpt-5.2';
+    const models = resolveOpenRouterModelChain(
+      process.env.OPENROUTER_RESEARCH_MODELS ||
+        process.env.OPENROUTER_RESEARCH_MODEL ||
+        process.env.OPENROUTER_COMPARE_MODELS ||
+        process.env.OPENROUTER_COMPARE_MODEL,
+    );
 
     const upstream = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -56,7 +62,7 @@ export async function POST(request: Request) {
         'X-OpenRouter-Title': 'Prospect Project Homie',
       },
       body: JSON.stringify({
-        model,
+        models,
         temperature: 0.1,
         max_tokens: 3_500,
         plugins: [{ id: 'web', max_results: 8 }],
@@ -115,7 +121,7 @@ export async function POST(request: Request) {
     const validated = validateWebResearch(JSON.parse(message.content), citedUrls);
     const result: WebResearchResult = {
       ...validated,
-      model: data.model || model,
+      model: data.model || models[0],
       generatedAt: new Date().toISOString(),
     };
     return Response.json(result, { headers: noStoreHeaders() });

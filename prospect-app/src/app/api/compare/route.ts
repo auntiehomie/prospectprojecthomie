@@ -4,6 +4,7 @@ import {
   type EvidenceRecord,
   type LlmAnalysisResult,
 } from '@/data/knowledge';
+import { resolveOpenRouterModelChain } from '@/data/model-routing';
 import { FLAGSTAR_PRODUCT_CATALOG } from '@/data/products';
 
 export const runtime = 'nodejs';
@@ -58,7 +59,7 @@ export async function POST(request: Request) {
     const evidence = body.evidence.slice(0, MAX_EVIDENCE);
     const productIds = new Set(FLAGSTAR_PRODUCT_CATALOG.products.map((product) => product.id));
     const evidenceIds = new Set(evidence.map((item) => item.id));
-    const model = process.env.OPENROUTER_COMPARE_MODEL || 'openai/gpt-5.2';
+    const models = resolveOpenRouterModelChain(process.env.OPENROUTER_COMPARE_MODELS || process.env.OPENROUTER_COMPARE_MODEL);
 
     const upstream = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -69,7 +70,7 @@ export async function POST(request: Request) {
         'X-OpenRouter-Title': 'Prospect Project Homie',
       },
       body: JSON.stringify({
-        model,
+        models,
         temperature: 0.1,
         max_tokens: 2_500,
         provider: { require_parameters: true },
@@ -132,7 +133,7 @@ export async function POST(request: Request) {
 
     const response: LlmAnalysisResult = {
       ...validated,
-      model: data.model || model,
+      model: data.model || models[0],
       generatedAt: new Date().toISOString(),
     };
     return Response.json(response, { headers: noStoreHeaders() });
