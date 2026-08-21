@@ -1,0 +1,54 @@
+import { addEvidence, getEvidence, deleteEvidence, updateEvidence } from '@/lib/storage';
+import { timingSafeEqual } from 'node:crypto';
+
+export const runtime = 'nodejs';
+
+function isAuthorized(request: Request) {
+  const expected = process.env.PROSPECT_APP_ACCESS_CODE;
+  if (!expected) return process.env.NODE_ENV !== 'production';
+  const supplied = request.headers.get('x-prospect-access-code') || '';
+  const a = Buffer.from(expected);
+  const b = Buffer.from(supplied);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
+function noStore() {
+  return { 'Cache-Control': 'no-store, private', 'X-Content-Type-Options': 'nosniff' };
+}
+
+export async function GET(request: Request) {
+  if (!isAuthorized(request)) return Response.json({ error: 'Unauthorized' }, { status: 401, headers: noStore() });
+  const url = new URL(request.url);
+  const businessName = url.searchParams.get('businessName') || undefined;
+  return Response.json(getEvidence(businessName), { headers: noStore() });
+}
+
+export async function POST(request: Request) {
+  if (!isAuthorized(request)) return Response.json({ error: 'Unauthorized' }, { status: 401, headers: noStore() });
+  try {
+    const body = await request.json() as { businessName: string; address: string; label: string; source: string; confidence: string; detail: string };
+    if (!body.businessName || !body.label || !body.source) {
+      return Response.json({ error: 'businessName, label, and source are required' }, { status: 400, headers: noStore() });
+    }
+    const entry = addEvidence({
+      businessName: body.businessName,
+      address: body.address || '',
+      label: body.label,
+      source: body.source,
+      confidence: (['confirmed', 'likely', 'possible', 'unverified'].includes(body.confidence) ? body.confidence : 'unverified') as 'confirmed' | 'likely' | 'possible' | 'unverified',
+      detail: body.detail || '',
+    });
+    return Response.json(entry, { status: 201, headers: noStore() });
+  } catch {
+    return Response.json({ error: 'Invalid request body' }, { status: 400, headers: noStore() });
+  }
+}
+
+export async function DELETE(request: Request) {
+  if (!isAuthorized(request)) return Response.json({ error: 'Unauthorized' }, { status: 401, headers: noStore() });
+  const url = new URL(request.url);
+  const id = url.searchParams.get('id');
+  if (!id) return Response.json({ error: 'id required' }, { status: 400, headers: noStore() });
+  const ok = deleteEvidence(id);
+  return Response.json({ ok }, { status: ok ? 200 : 404, headers: noStore() });
+}

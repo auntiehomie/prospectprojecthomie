@@ -1,0 +1,88 @@
+import { addContact, getContacts, deleteContact, addOptOut, isOptedOut, removeOptOut, getOptOuts, exportAll, getStats } from '@/lib/storage';
+import { timingSafeEqual } from 'node:crypto';
+
+export const runtime = 'nodejs';
+
+function isAuthorized(request: Request) {
+  const expected = process.env.PROSPECT_APP_ACCESS_CODE;
+  if (!expected) return process.env.NODE_ENV !== 'production';
+  const supplied = request.headers.get('x-prospect-access-code') || '';
+  const a = Buffer.from(expected);
+  const b = Buffer.from(supplied);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
+function noStore() {
+  return { 'Cache-Control': 'no-store, private', 'X-Content-Type-Options': 'nosniff' };
+}
+
+// GET /api/contacts?businessName=X | ?action=stats | ?action=export | ?action=optouts
+export async function GET(request: Request) {
+  if (!isAuthorized(request)) return Response.json({ error: 'Unauthorized' }, { status: 401, headers: noStore() });
+  const url = new URL(request.url);
+  const action = url.searchParams.get('action');
+
+  if (action === 'stats') return Response.json(getStats(), { headers: noStore() });
+  if (action === 'export') return Response.json(exportAll(), { headers: noStore() });
+  if (action === 'optouts') return Response.json(getOptOuts(), { headers: noStore() });
+
+  const businessName = url.searchParams.get('businessName') || undefined;
+  return Response.json(getContacts(businessName), { headers: noStore() });
+}
+
+export async function POST(request: Request) {
+  if (!isAuthorized(request)) return Response.json({ error: 'Unauthorized' }, { status: 401, headers: noStore() });
+  try {
+    const body = await request.json() as Record<string, unknown>;
+
+    // Opt-out action
+    if (body.action === 'optout') {
+      const entry = addOptOut({
+        businessName: String(body.businessName || ''),
+        address: String(body.address || ''),
+        reason: String(body.reason || ''),
+      });
+      return Response.json(entry, { status: 201, headers: noStore() });
+    }
+
+    // Check opt-out status
+    if (body.action === 'check-optout') {
+      const optedOut = isOptedOut(String(body.businessName || ''), String(body.address || ''));
+      return Response.json({ optedOut }, { headers: noStore() });
+    }
+
+    // Add contact
+    if (!body.businessName || !body.value) {
+      return Response.json({ error: 'businessName and value are required' }, { status: 400, headers: noStore() });
+    }
+    const entry = addContact({
+      businessName: String(body.businessName),
+      address: String(body.address || ''),
+      contactType: (['phone', 'email', 'linkedin', 'website', 'other'].includes(String(body.contactType)) ? String(body.contactType) : 'other') as 'phone' | 'email' | 'linkedin' | 'website' | 'other',
+      value: String(body.value),
+      source: String(body.source || ''),
+      verified: Boolean(body.verified),
+    });
+    return Response.json(entry, { status: 201, headers: noStore() });
+  } catch {
+    return Response.json({ error: 'Invalid request body' }, { status: 400, headers: noStore() });
+  }
+}
+
+export async function DELETE(request: Request) {
+  if (!isAuthorized(request)) return Response.json({ error: 'Unauthorized' }, { status: 401, headers: noStore() });
+  const url = new URL(request.url);
+  const id = url.searchParams.get('id');
+  const action = url.searchParams.get('action');
+
+  if (action === 'optout') {
+    const businessName = url.searchParams.get('businessName') || '';
+    const address = url.searchParams.get('address') || '';
+    const ok = removeOptOut(businessName, address);
+    return Response.json({ ok }, { status: ok ? 200 : 404, headers: noStore() });
+  }
+
+  if (!id) return Response.json({ error: 'id required' }, { status: 400, headers: noStore() });
+  const ok = deleteContact(id);
+  return Response.json({ ok }, { status: ok ? 200 : 404, headers: noStore() });
+}

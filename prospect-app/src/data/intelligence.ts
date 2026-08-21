@@ -331,11 +331,45 @@ export function generateReports(prospects: Prospect[]): IntelligenceReport[] {
   return prospects.map(generateReport);
 }
 
-// ─── Feedback capture (in-memory, local-only) ───────────────────────
+// ─── Feedback capture (API-backed durable storage) ─────────────────
+// Replaced in-memory store with API calls to /api/feedback.
+// The old downloadFeedback() helper is preserved for export use cases.
 
-let feedbackStore: FeedbackEntry[] = [];
+const FEEDBACK_API = '/api/feedback';
 
-export function submitFeedback(
+async function feedbackApi(path: string, init?: RequestInit) {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  const code = typeof localStorage !== 'undefined' ? localStorage.getItem('prospectAccessCode') : null;
+  if (code) headers['x-prospect-access-code'] = code;
+  const res = await fetch(path, { ...init, headers });
+  if (!res.ok) throw new Error(`Feedback API error: ${res.status}`);
+  return res.json();
+}
+
+export async function submitFeedback(
+  businessName: string,
+  address: string,
+  recommendationId: string,
+  agreement: FeedbackEntry['agreement'],
+  notes: string,
+): Promise<FeedbackEntry> {
+  const entry = await feedbackApi(FEEDBACK_API, {
+    method: 'POST',
+    body: JSON.stringify({ businessName, address, recommendationId, agreement, notes: notes.trim().slice(0, 500) }),
+  });
+  return { ...entry, timestamp: entry.createdAt };
+}
+
+export async function getFeedback(businessName?: string): Promise<FeedbackEntry[]> {
+  const url = businessName ? `${FEEDBACK_API}?businessName=${encodeURIComponent(businessName)}` : FEEDBACK_API;
+  const entries = await feedbackApi(url);
+  return entries.map((e: { createdAt: string }) => ({ ...e, timestamp: e.createdAt }));
+}
+
+// In-memory fallback for SSR contexts where fetch isn't available
+let fallbackStore: FeedbackEntry[] = [];
+
+export function submitFeedbackSync(
   businessName: string,
   address: string,
   recommendationId: string,
@@ -348,22 +382,23 @@ export function submitFeedback(
     recommendationId,
     timestamp: new Date().toISOString(),
     agreement,
-    notes: notes.trim().slice(0, 500), // cap at 500 chars
+    notes: notes.trim().slice(0, 500),
   };
-  feedbackStore = [...feedbackStore, entry];
+  fallbackStore = [...fallbackStore, entry];
   return entry;
 }
 
-export function getFeedback(): FeedbackEntry[] {
-  return [...feedbackStore];
+export function getFeedbackSync(): FeedbackEntry[] {
+  return [...fallbackStore];
 }
 
 export function clearFeedback(): void {
-  feedbackStore = [];
+  fallbackStore = [];
 }
 
+// Preserved: local download helper for exporting feedback as JSON
 export function downloadFeedback(filename?: string): void {
-  const entries = getFeedback();
+  const entries = getFeedbackSync();
   const json = JSON.stringify(entries, null, 2);
   const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
   const url = URL.createObjectURL(blob);

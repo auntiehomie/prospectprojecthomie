@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import EvidenceWorkspace from '@/components/EvidenceWorkspace';
 import type { Prospect } from '@/data/types';
 import {
@@ -54,31 +54,43 @@ export default function ProspectIntelligence({ prospect, allProspects }: Props) 
   const [feedbackAgreement, setFeedbackAgreement] = useState<FeedbackEntry['agreement']>('skip');
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [feedbackEntries, setFeedbackEntries] = useState<FeedbackEntry[]>([]);
 
-  const handleSubmitFeedback = useCallback(() => {
+  // Fetch existing feedback from durable API storage
+  useEffect(() => {
+    let cancelled = false;
+    getFeedback().then((entries) => {
+      if (!cancelled) setFeedbackEntries(entries);
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [feedbackSubmitted]);
+
+  const handleSubmitFeedback = useCallback(async () => {
     if (!prospect) return;
     setSubmitting(true);
-    submitFeedback(
-      prospect['Business Name'],
-      `${prospect.Address}, ${prospect.City}, ${prospect.State}`,
-      `${prospect['Business Name']}-${prospect.Address}`,
-      feedbackAgreement,
-      feedbackNotes,
-    );
-    setFeedbackSubmitted(true);
-    setTimeout(() => {
-      setFeedbackSubmitted(false);
+    try {
+      await submitFeedback(
+        prospect['Business Name'],
+        `${prospect.Address}, ${prospect.City}, ${prospect.State}`,
+        `${prospect['Business Name']}-${prospect.Address}`,
+        feedbackAgreement,
+        feedbackNotes,
+      );
+      setFeedbackSubmitted(true);
+      setTimeout(() => {
+        setFeedbackSubmitted(false);
+        setSubmitting(false);
+        setFeedbackNotes('');
+        setFeedbackAgreement('skip');
+      }, 3000);
+    } catch {
       setSubmitting(false);
-      setFeedbackNotes('');
-      setFeedbackAgreement('skip');
-    }, 3000);
+    }
   }, [feedbackAgreement, feedbackNotes, prospect]);
 
   const handleDownloadFeedback = useCallback(() => {
     downloadFeedback();
   }, []);
-
-  const feedbackEntries = getFeedback();
 
   // ── Empty state (no prospect selected) ──
   if (!report) {
