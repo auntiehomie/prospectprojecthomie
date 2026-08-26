@@ -1,6 +1,7 @@
 import ProspectExplorer from '@/components/ProspectExplorer';
 import prospectsData from '@/data/prospects.json';
 import type { Prospect } from '@/data/types';
+import ZipOpportunitySearch from '@/components/ZipOpportunitySearch';
 
 const prospects = prospectsData as Prospect[];
 
@@ -59,6 +60,7 @@ export default function Home() {
       </section>
 
       <div className="page-shell content-stack">
+        <ZipOpportunitySearch />
         <ProspectExplorer
           prospects={prospects}
           zipCodes={zipCodes}
@@ -86,7 +88,7 @@ export default function Home() {
       <footer>
         <div className="page-shell footer-inner">
           <span>Prospect Project Homie</span>
-          <span>52 qualified records · Refreshed August 2, 2026</span>
+          <span>{prospects.length} curated PPP seeds · Live records come from the reviewed database</span>
         </div>
       </footer>
     </main>

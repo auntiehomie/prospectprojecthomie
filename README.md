@@ -12,7 +12,7 @@ The current qualified list contains businesses that:
 - are within two miles of a listed closing branch; and
 - are not liquor stores or suspected money-services businesses.
 
-The included Next.js app turns the researched CSV into a self-service lookup tool with full-text search, filters, sorting, record notes, and filtered CSV export.
+The included Next.js app turns the researched CSV into a self-service lookup tool with full-text search, filters, sorting, record notes, and filtered CSV export. Its persistent data platform can also discover reviewed business seeds by Michigan ZIP, cross-reference them with sourced branch-closure events, and rank opportunities without treating an inference as fact.
 
 ## Data sources
 
@@ -90,6 +90,16 @@ npm run sync-data
 ## Deployment
 
 Recommended deployment is Vercel with `prospect-app` as the root directory. See `DEPLOYMENT-OPTIONS.md` for the decision and privacy notes. No database or runtime API key is required for the current read-only app.
+
+The live ZIP intelligence and evidence APIs require a Neon/Postgres database. Provision Neon through the Vercel Marketplace, apply `prospect-app/db/001_prospect_platform.sql`, then run `npm run db:seed` from `prospect-app`. Add `DATABASE_URL` and `PROSPECT_APP_ACCESS_CODE` to Vercel before using the private routes.
+
+### Above-ground data workflow
+
+- `npm run import:closures -- official.csv "Institution Name"` accepts reviewed OCC/FDIC closure exports and rejects unrelated source domains.
+- `npm run discover:zip -- 48334` creates OpenStreetMap discovery seeds. It requires explicit confirmation and leaves every business unverified.
+- `npm run db:geocode` geocodes reviewed records at a policy-respecting rate and requires an identifying user agent.
+- Michigan UCC research remains assisted and human-reviewed; the app never bypasses access controls or bulk-harvests results.
+- Every relationship and need signal requires a source, observation date and confidence. PPP is historical evidence, not proof of a current account.
 
 Use Node.js 22.x in Vercel, leave the output directory blank at the Next.js default, and enable Vercel Deployment Protection if the prospecting workflow should remain private. The committed `prospect-app/vercel.json` selects Next.js and clears stale output-directory overrides. The app also sends `noindex` metadata to reduce accidental search-engine discovery.
 

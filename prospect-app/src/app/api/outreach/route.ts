@@ -20,7 +20,7 @@ export async function GET(request: Request) {
   if (!isAuthorized(request)) return Response.json({ error: 'Unauthorized' }, { status: 401, headers: noStore() });
   const url = new URL(request.url);
   const businessName = url.searchParams.get('businessName') || undefined;
-  return Response.json(getOutreach(businessName), { headers: noStore() });
+  return Response.json(await getOutreach(businessName), { headers: noStore() });
 }
 
 export async function POST(request: Request) {
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
       return Response.json({ error: 'businessName is required' }, { status: 400, headers: noStore() });
     }
     const outcomes = ['pending', 'contacted', 'responded', 'qualified', 'not_interested', 'opted_out'];
-    const entry = addOutreach({
+    const entry = await addOutreach({
       businessName: body.businessName,
       address: body.address || '',
       outcome: (outcomes.includes(body.outcome) ? body.outcome : 'pending') as 'pending' | 'contacted' | 'responded' | 'qualified' | 'not_interested' | 'opted_out',
@@ -57,7 +57,7 @@ export async function PATCH(request: Request) {
     if (body.notes !== undefined) patch.notes = body.notes;
     if (body.contactMethod) patch.contactMethod = body.contactMethod;
     if (body.outcome && body.outcome !== 'pending') patch.contactedAt = new Date().toISOString();
-    const updated = updateOutreach(body.id, patch as Parameters<typeof updateOutreach>[1]);
+    const updated = await updateOutreach(body.id, patch as Parameters<typeof updateOutreach>[1]);
     if (!updated) return Response.json({ error: 'Not found' }, { status: 404, headers: noStore() });
     return Response.json(updated, { headers: noStore() });
   } catch {
