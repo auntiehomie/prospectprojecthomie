@@ -101,7 +101,7 @@ The live ZIP intelligence and evidence APIs require a Neon/Postgres database. Pr
 - Michigan UCC research remains assisted and human-reviewed; the app never bypasses access controls or bulk-harvests results.
 - Every relationship and need signal requires a source, observation date and confidence. PPP is historical evidence, not proof of a current account.
 
-Use Node.js 22.x in Vercel, leave the output directory blank at the Next.js default, and enable Vercel Deployment Protection if the prospecting workflow should remain private. The committed `prospect-app/vercel.json` selects Next.js and clears stale output-directory overrides. The app also sends `noindex` metadata to reduce accidental search-engine discovery.
+Use Node.js 24.x in Vercel, leave the output directory blank at the Next.js default, and enable Vercel Deployment Protection if the prospecting workflow should remain private. The committed `prospect-app/vercel.json` selects Next.js and clears stale output-directory overrides. The app also sends `noindex` metadata to reduce accidental search-engine discovery.
 
 ## Data-quality snapshot
 
