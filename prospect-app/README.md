@@ -65,7 +65,7 @@ This copies `../PPP-Prospect-Results.json` into `src/data/prospects.json` for th
 Recommended: import the repository into Vercel and set the root directory to `prospect-app`.
 
 - Framework preset: Next.js
-- Node.js version: 22.x
+- Node.js version: 24.x
 - Install command: `npm ci`
 - Build command: `npm run build`
 - Output directory: leave blank (the committed `vercel.json` clears stale overrides)
