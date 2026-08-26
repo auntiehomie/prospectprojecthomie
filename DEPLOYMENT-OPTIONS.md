@@ -16,7 +16,7 @@ Vercel configuration:
 
 - Framework preset: Next.js
 - Root directory: `prospect-app`
-- Node.js version: 22.x
+- Node.js version: 24.x
 - Build command: `npm run build`
 - Install command: `npm ci`
 - Output directory: blank / Next.js default
