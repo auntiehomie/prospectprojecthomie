@@ -1,4 +1,4 @@
-import { addEvidence, getEvidence, deleteEvidence, updateEvidence } from '@/lib/storage';
+import { addEvidence, getEvidence, deleteEvidence } from '@/lib/storage';
 import { timingSafeEqual } from 'node:crypto';
 
 export const runtime = 'nodejs';
@@ -20,7 +20,7 @@ export async function GET(request: Request) {
   if (!isAuthorized(request)) return Response.json({ error: 'Unauthorized' }, { status: 401, headers: noStore() });
   const url = new URL(request.url);
   const businessName = url.searchParams.get('businessName') || undefined;
-  return Response.json(getEvidence(businessName), { headers: noStore() });
+  return Response.json(await getEvidence(businessName), { headers: noStore() });
 }
 
 export async function POST(request: Request) {
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     if (!body.businessName || !body.label || !body.source) {
       return Response.json({ error: 'businessName, label, and source are required' }, { status: 400, headers: noStore() });
     }
-    const entry = addEvidence({
+    const entry = await addEvidence({
       businessName: body.businessName,
       address: body.address || '',
       label: body.label,
@@ -49,6 +49,6 @@ export async function DELETE(request: Request) {
   const url = new URL(request.url);
   const id = url.searchParams.get('id');
   if (!id) return Response.json({ error: 'id required' }, { status: 400, headers: noStore() });
-  const ok = deleteEvidence(id);
+  const ok = await deleteEvidence(id);
   return Response.json({ ok }, { status: ok ? 200 : 404, headers: noStore() });
 }

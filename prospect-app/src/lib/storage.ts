@@ -1,267 +1,38 @@
-// ─── Prospect Intelligence Storage Layer ─────────────────────────────
-// Durable storage for evidence, contacts, feedback, outreach outcomes,
-// and opt-out suppression. JSON-file-backed in development; designed
-// to swap to Neon/Postgres in production with the same interface.
-// ──────────────────────────────────────────────────────────────────────
+import { getDb } from '@/lib/db';
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
-import { join } from 'node:path';
-import { randomUUID } from 'node:crypto';
+export interface StoredEvidence { id: string; businessName: string; address: string; label: string; source: string; confidence: 'confirmed'|'likely'|'possible'|'unverified'; detail: string; createdAt: string; updatedAt: string }
+export interface StoredContact { id: string; businessName: string; address: string; contactType: 'phone'|'email'|'linkedin'|'website'|'other'; value: string; source: string; verified: boolean; createdAt: string; updatedAt: string }
+export interface StoredFeedback { id: string; businessName: string; address: string; recommendationId: string; agreement: 'agree'|'disagree'|'partial'|'skip'; notes: string; createdAt: string }
+export interface StoredOutreach { id: string; businessName: string; address: string; outcome: 'pending'|'contacted'|'responded'|'qualified'|'not_interested'|'opted_out'; notes: string; contactMethod?: string; contactedAt?: string; createdAt: string; updatedAt: string }
+export interface OptOutEntry { businessName: string; address: string; reason: string; createdAt: string }
 
-// ─── Types ──────────────────────────────────────────────────────────
+type Row = Record<string, unknown>;
+const date = (value: unknown) => value instanceof Date ? value.toISOString() : String(value || '');
+const evidence = (r: Row): StoredEvidence => ({ id:String(r.id), businessName:String(r.business_name), address:String(r.address), label:String(r.label), source:String(r.source), confidence:r.confidence as StoredEvidence['confidence'], detail:String(r.detail), createdAt:date(r.created_at), updatedAt:date(r.updated_at) });
+const contact = (r: Row): StoredContact => ({ id:String(r.id), businessName:String(r.business_name), address:String(r.address), contactType:r.contact_type as StoredContact['contactType'], value:String(r.value), source:String(r.source), verified:Boolean(r.verified), createdAt:date(r.created_at), updatedAt:date(r.updated_at) });
+const feedback = (r: Row): StoredFeedback => ({ id:String(r.id), businessName:String(r.business_name), address:String(r.address), recommendationId:String(r.recommendation_id), agreement:r.agreement as StoredFeedback['agreement'], notes:String(r.notes), createdAt:date(r.created_at) });
+const outreach = (r: Row): StoredOutreach => ({ id:String(r.id), businessName:String(r.business_name), address:String(r.address), outcome:r.outcome as StoredOutreach['outcome'], notes:String(r.notes), contactMethod:r.contact_method ? String(r.contact_method) : undefined, contactedAt:r.contacted_at ? date(r.contacted_at) : undefined, createdAt:date(r.created_at), updatedAt:date(r.updated_at) });
 
-export interface StoredEvidence {
-  id: string;
-  businessName: string;
-  address: string;
-  label: string;
-  source: string;
-  confidence: 'confirmed' | 'likely' | 'possible' | 'unverified';
-  detail: string;
-  createdAt: string;
-  updatedAt: string;
-}
+export async function getEvidence(businessName?: string) { const sql=getDb(); const rows=businessName ? await sql`SELECT * FROM stored_evidence WHERE business_name=${businessName} ORDER BY created_at DESC` : await sql`SELECT * FROM stored_evidence ORDER BY created_at DESC`; return (rows as unknown as Row[]).map(evidence); }
+export async function addEvidence(entry: Omit<StoredEvidence,'id'|'createdAt'|'updatedAt'>) { const sql=getDb(); const [r]=await sql`INSERT INTO stored_evidence (business_name,address,label,source,confidence,detail) VALUES (${entry.businessName},${entry.address},${entry.label},${entry.source},${entry.confidence},${entry.detail}) RETURNING *`; return evidence(r); }
+export async function updateEvidence(id:string, patch:Partial<Omit<StoredEvidence,'id'|'businessName'|'address'|'createdAt'>>) { const sql=getDb(); const [current]=await sql`SELECT * FROM stored_evidence WHERE id=${id}`; if(!current)return null; const [r]=await sql`UPDATE stored_evidence SET label=${patch.label ?? current.label},source=${patch.source ?? current.source},confidence=${patch.confidence ?? current.confidence},detail=${patch.detail ?? current.detail},updated_at=now() WHERE id=${id} RETURNING *`; return evidence(r); }
+export async function deleteEvidence(id:string) { const sql=getDb(); const rows=await sql`DELETE FROM stored_evidence WHERE id=${id} RETURNING id`; return rows.length>0; }
 
-export interface StoredContact {
-  id: string;
-  businessName: string;
-  address: string;
-  contactType: 'phone' | 'email' | 'linkedin' | 'website' | 'other';
-  value: string;
-  source: string;
-  verified: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+export async function getContacts(businessName?:string) { const sql=getDb(); const rows=businessName ? await sql`SELECT * FROM stored_contacts WHERE business_name=${businessName} ORDER BY created_at DESC` : await sql`SELECT * FROM stored_contacts ORDER BY created_at DESC`; return (rows as unknown as Row[]).map(contact); }
+export async function addContact(entry:Omit<StoredContact,'id'|'createdAt'|'updatedAt'>) { const sql=getDb(); const [r]=await sql`INSERT INTO stored_contacts (business_name,address,contact_type,value,source,verified) VALUES (${entry.businessName},${entry.address},${entry.contactType},${entry.value},${entry.source},${entry.verified}) RETURNING *`; return contact(r); }
+export async function deleteContact(id:string) { const sql=getDb(); const rows=await sql`DELETE FROM stored_contacts WHERE id=${id} RETURNING id`; return rows.length>0; }
 
-export interface StoredFeedback {
-  id: string;
-  businessName: string;
-  address: string;
-  recommendationId: string;
-  agreement: 'agree' | 'disagree' | 'partial' | 'skip';
-  notes: string;
-  createdAt: string;
-}
+export async function getFeedback(businessName?:string) { const sql=getDb(); const rows=businessName ? await sql`SELECT * FROM stored_feedback WHERE business_name=${businessName} ORDER BY created_at DESC` : await sql`SELECT * FROM stored_feedback ORDER BY created_at DESC`; return (rows as unknown as Row[]).map(feedback); }
+export async function addFeedback(entry:Omit<StoredFeedback,'id'|'createdAt'>) { const sql=getDb(); const [r]=await sql`INSERT INTO stored_feedback (business_name,address,recommendation_id,agreement,notes) VALUES (${entry.businessName},${entry.address},${entry.recommendationId},${entry.agreement},${entry.notes}) RETURNING *`; return feedback(r); }
 
-export interface StoredOutreach {
-  id: string;
-  businessName: string;
-  address: string;
-  outcome: 'pending' | 'contacted' | 'responded' | 'qualified' | 'not_interested' | 'opted_out';
-  notes: string;
-  contactMethod?: string;
-  contactedAt?: string;
-  createdAt: string;
-  updatedAt: string;
-}
+export async function getOutreach(businessName?:string) { const sql=getDb(); const rows=businessName ? await sql`SELECT * FROM stored_outreach WHERE business_name=${businessName} ORDER BY created_at DESC` : await sql`SELECT * FROM stored_outreach ORDER BY created_at DESC`; return (rows as unknown as Row[]).map(outreach); }
+export async function addOutreach(entry:Omit<StoredOutreach,'id'|'createdAt'|'updatedAt'>) { const sql=getDb(); const [r]=await sql`INSERT INTO stored_outreach (business_name,address,outcome,notes,contact_method,contacted_at) VALUES (${entry.businessName},${entry.address},${entry.outcome},${entry.notes},${entry.contactMethod || null},${entry.contactedAt || null}) RETURNING *`; return outreach(r); }
+export async function updateOutreach(id:string, patch:Partial<Omit<StoredOutreach,'id'|'businessName'|'address'|'createdAt'>>) { const sql=getDb(); const [current]=await sql`SELECT * FROM stored_outreach WHERE id=${id}`; if(!current)return null; const [r]=await sql`UPDATE stored_outreach SET outcome=${patch.outcome ?? current.outcome},notes=${patch.notes ?? current.notes},contact_method=${patch.contactMethod ?? current.contact_method},contacted_at=${patch.contactedAt ?? current.contacted_at},updated_at=now() WHERE id=${id} RETURNING *`; return outreach(r); }
 
-export interface OptOutEntry {
-  businessName: string;
-  address: string;
-  reason: string;
-  createdAt: string;
-}
+export async function getOptOuts():Promise<OptOutEntry[]> { const sql=getDb(); const rows=await sql`SELECT COALESCE(b.display_name,'') business_name,COALESCE(l.address_line,'') address,s.reason,s.created_at FROM suppression_entries s LEFT JOIN businesses b ON b.id=s.business_id LEFT JOIN LATERAL (SELECT address_line FROM business_locations WHERE business_id=b.id LIMIT 1) l ON true ORDER BY s.created_at DESC`; return (rows as unknown as Row[]).map((r)=>({businessName:String(r.business_name),address:String(r.address),reason:String(r.reason),createdAt:date(r.created_at)})); }
+export async function isOptedOut(businessName:string,address:string) { const sql=getDb(); const rows=await sql`SELECT 1 FROM suppression_entries s JOIN businesses b ON b.id=s.business_id LEFT JOIN business_locations l ON l.business_id=b.id WHERE b.display_name=${businessName} AND (${address}='' OR l.address_line=${address}) LIMIT 1`; return rows.length>0; }
+export async function addOptOut(entry:Omit<OptOutEntry,'createdAt'>) { const sql=getDb(); const [business]=await sql`SELECT b.id FROM businesses b LEFT JOIN business_locations l ON l.business_id=b.id WHERE b.display_name=${entry.businessName} AND (${entry.address}='' OR l.address_line=${entry.address}) LIMIT 1`; if(!business) throw new Error('Business must exist before it can be suppressed.'); const [r]=await sql`INSERT INTO suppression_entries (business_id,reason) VALUES (${business.id},${entry.reason}) ON CONFLICT (business_id,normalized_contact) DO UPDATE SET reason=EXCLUDED.reason RETURNING created_at`; return {...entry,createdAt:date(r.created_at)}; }
+export async function removeOptOut(businessName:string,address:string) { const sql=getDb(); const rows=await sql`DELETE FROM suppression_entries s USING businesses b WHERE s.business_id=b.id AND b.display_name=${businessName} AND EXISTS (SELECT 1 FROM business_locations l WHERE l.business_id=b.id AND (${address}='' OR l.address_line=${address})) RETURNING s.id`; return rows.length>0; }
 
-export interface StorageStats {
-  evidenceCount: number;
-  contactCount: number;
-  feedbackCount: number;
-  outreachCount: number;
-  optOutCount: number;
-}
-
-// ─── File-backed store ──────────────────────────────────────────────
-
-const DATA_DIR = join(process.cwd(), 'data');
-
-function ensureDir() {
-  if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true });
-}
-
-function readStore<T>(filename: string): T[] {
-  ensureDir();
-  const path = join(DATA_DIR, filename);
-  if (!existsSync(path)) return [];
-  try {
-    return JSON.parse(readFileSync(path, 'utf-8')) as T[];
-  } catch {
-    return [];
-  }
-}
-
-function writeStore<T>(filename: string, data: T[]): void {
-  ensureDir();
-  writeFileSync(join(DATA_DIR, filename), JSON.stringify(data, null, 2), 'utf-8');
-}
-
-// ─── Evidence ───────────────────────────────────────────────────────
-
-const EVIDENCE_FILE = 'evidence.json';
-
-export function getEvidence(businessName?: string): StoredEvidence[] {
-  const all = readStore<StoredEvidence>(EVIDENCE_FILE);
-  if (!businessName) return all;
-  return all.filter((e) => e.businessName === businessName);
-}
-
-export function addEvidence(entry: Omit<StoredEvidence, 'id' | 'createdAt' | 'updatedAt'>): StoredEvidence {
-  const all = readStore<StoredEvidence>(EVIDENCE_FILE);
-  const now = new Date().toISOString();
-  const item: StoredEvidence = { ...entry, id: randomUUID(), createdAt: now, updatedAt: now };
-  all.push(item);
-  writeStore(EVIDENCE_FILE, all);
-  return item;
-}
-
-export function updateEvidence(id: string, patch: Partial<Omit<StoredEvidence, 'id' | 'businessName' | 'address' | 'createdAt'>>): StoredEvidence | null {
-  const all = readStore<StoredEvidence>(EVIDENCE_FILE);
-  const idx = all.findIndex((e) => e.id === id);
-  if (idx === -1) return null;
-  all[idx] = { ...all[idx], ...patch, updatedAt: new Date().toISOString() };
-  writeStore(EVIDENCE_FILE, all);
-  return all[idx];
-}
-
-export function deleteEvidence(id: string): boolean {
-  const all = readStore<StoredEvidence>(EVIDENCE_FILE);
-  const filtered = all.filter((e) => e.id !== id);
-  if (filtered.length === all.length) return false;
-  writeStore(EVIDENCE_FILE, filtered);
-  return true;
-}
-
-// ─── Contacts ───────────────────────────────────────────────────────
-
-const CONTACTS_FILE = 'contacts.json';
-
-export function getContacts(businessName?: string): StoredContact[] {
-  const all = readStore<StoredContact>(CONTACTS_FILE);
-  if (!businessName) return all;
-  return all.filter((c) => c.businessName === businessName);
-}
-
-export function addContact(entry: Omit<StoredContact, 'id' | 'createdAt' | 'updatedAt'>): StoredContact {
-  const all = readStore<StoredContact>(CONTACTS_FILE);
-  const now = new Date().toISOString();
-  const item: StoredContact = { ...entry, id: randomUUID(), createdAt: now, updatedAt: now };
-  all.push(item);
-  writeStore(CONTACTS_FILE, all);
-  return item;
-}
-
-export function updateContact(id: string, patch: Partial<Omit<StoredContact, 'id' | 'businessName' | 'address' | 'createdAt'>>): StoredContact | null {
-  const all = readStore<StoredContact>(CONTACTS_FILE);
-  const idx = all.findIndex((c) => c.id === id);
-  if (idx === -1) return null;
-  all[idx] = { ...all[idx], ...patch, updatedAt: new Date().toISOString() };
-  writeStore(CONTACTS_FILE, all);
-  return all[idx];
-}
-
-export function deleteContact(id: string): boolean {
-  const all = readStore<StoredContact>(CONTACTS_FILE);
-  const filtered = all.filter((c) => c.id !== id);
-  if (filtered.length === all.length) return false;
-  writeStore(CONTACTS_FILE, filtered);
-  return true;
-}
-
-// ─── Feedback ───────────────────────────────────────────────────────
-
-const FEEDBACK_FILE = 'feedback.json';
-
-export function getFeedback(businessName?: string): StoredFeedback[] {
-  const all = readStore<StoredFeedback>(FEEDBACK_FILE);
-  if (!businessName) return all;
-  return all.filter((f) => f.businessName === businessName);
-}
-
-export function addFeedback(entry: Omit<StoredFeedback, 'id' | 'createdAt'>): StoredFeedback {
-  const all = readStore<StoredFeedback>(FEEDBACK_FILE);
-  const item: StoredFeedback = { ...entry, id: randomUUID(), createdAt: new Date().toISOString() };
-  all.push(item);
-  writeStore(FEEDBACK_FILE, all);
-  return item;
-}
-
-// ─── Outreach ───────────────────────────────────────────────────────
-
-const OUTREACH_FILE = 'outreach.json';
-
-export function getOutreach(businessName?: string): StoredOutreach[] {
-  const all = readStore<StoredOutreach>(OUTREACH_FILE);
-  if (!businessName) return all;
-  return all.filter((o) => o.businessName === businessName);
-}
-
-export function addOutreach(entry: Omit<StoredOutreach, 'id' | 'createdAt' | 'updatedAt'>): StoredOutreach {
-  const all = readStore<StoredOutreach>(OUTREACH_FILE);
-  const now = new Date().toISOString();
-  const item: StoredOutreach = { ...entry, id: randomUUID(), createdAt: now, updatedAt: now };
-  all.push(item);
-  writeStore(OUTREACH_FILE, all);
-  return item;
-}
-
-export function updateOutreach(id: string, patch: Partial<Omit<StoredOutreach, 'id' | 'businessName' | 'address' | 'createdAt'>>): StoredOutreach | null {
-  const all = readStore<StoredOutreach>(OUTREACH_FILE);
-  const idx = all.findIndex((o) => o.id === id);
-  if (idx === -1) return null;
-  all[idx] = { ...all[idx], ...patch, updatedAt: new Date().toISOString() };
-  writeStore(OUTREACH_FILE, all);
-  return all[idx];
-}
-
-// ─── Opt-out ────────────────────────────────────────────────────────
-
-const OPTOUT_FILE = 'optout.json';
-
-export function getOptOuts(): OptOutEntry[] {
-  return readStore<OptOutEntry>(OPTOUT_FILE);
-}
-
-export function isOptedOut(businessName: string, address: string): boolean {
-  return getOptOuts().some((o) => o.businessName === businessName && o.address === address);
-}
-
-export function addOptOut(entry: Omit<OptOutEntry, 'createdAt'>): OptOutEntry {
-  const all = readStore<OptOutEntry>(OPTOUT_FILE);
-  const item: OptOutEntry = { ...entry, createdAt: new Date().toISOString() };
-  all.push(item);
-  writeStore(OPTOUT_FILE, all);
-  return item;
-}
-
-export function removeOptOut(businessName: string, address: string): boolean {
-  const all = readStore<OptOutEntry>(OPTOUT_FILE);
-  const filtered = all.filter((o) => !(o.businessName === businessName && o.address === address));
-  if (filtered.length === all.length) return false;
-  writeStore(OPTOUT_FILE, filtered);
-  return true;
-}
-
-// ─── Stats ──────────────────────────────────────────────────────────
-
-export function getStats(): StorageStats {
-  return {
-    evidenceCount: readStore<StoredEvidence>(EVIDENCE_FILE).length,
-    contactCount: readStore<StoredContact>(CONTACTS_FILE).length,
-    feedbackCount: readStore<StoredFeedback>(FEEDBACK_FILE).length,
-    outreachCount: readStore<StoredOutreach>(OUTREACH_FILE).length,
-    optOutCount: readStore<OptOutEntry>(OPTOUT_FILE).length,
-  };
-}
-
-// ─── Export all data (for backup/migration) ─────────────────────────
-
-export function exportAll() {
-  return {
-    evidence: readStore<StoredEvidence>(EVIDENCE_FILE),
-    contacts: readStore<StoredContact>(CONTACTS_FILE),
-    feedback: readStore<StoredFeedback>(FEEDBACK_FILE),
-    outreach: readStore<StoredOutreach>(OUTREACH_FILE),
-    optOuts: readStore<OptOutEntry>(OPTOUT_FILE),
-    exportedAt: new Date().toISOString(),
-  };
-}
+export async function getStats() { const sql=getDb(); const [r]=await sql`SELECT (SELECT count(*) FROM stored_evidence)::int evidence_count,(SELECT count(*) FROM stored_contacts)::int contact_count,(SELECT count(*) FROM stored_feedback)::int feedback_count,(SELECT count(*) FROM stored_outreach)::int outreach_count,(SELECT count(*) FROM suppression_entries)::int opt_out_count`; return {evidenceCount:Number(r.evidence_count),contactCount:Number(r.contact_count),feedbackCount:Number(r.feedback_count),outreachCount:Number(r.outreach_count),optOutCount:Number(r.opt_out_count)}; }
+export async function exportAll() { const [evidenceRows,contacts,feedbackRows,outreachRows,optOuts]=await Promise.all([getEvidence(),getContacts(),getFeedback(),getOutreach(),getOptOuts()]); return {evidence:evidenceRows,contacts,feedback:feedbackRows,outreach:outreachRows,optOuts,exportedAt:new Date().toISOString()}; }

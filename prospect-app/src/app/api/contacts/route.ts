@@ -22,12 +22,12 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const action = url.searchParams.get('action');
 
-  if (action === 'stats') return Response.json(getStats(), { headers: noStore() });
-  if (action === 'export') return Response.json(exportAll(), { headers: noStore() });
-  if (action === 'optouts') return Response.json(getOptOuts(), { headers: noStore() });
+  if (action === 'stats') return Response.json(await getStats(), { headers: noStore() });
+  if (action === 'export') return Response.json(await exportAll(), { headers: noStore() });
+  if (action === 'optouts') return Response.json(await getOptOuts(), { headers: noStore() });
 
   const businessName = url.searchParams.get('businessName') || undefined;
-  return Response.json(getContacts(businessName), { headers: noStore() });
+  return Response.json(await getContacts(businessName), { headers: noStore() });
 }
 
 export async function POST(request: Request) {
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
 
     // Opt-out action
     if (body.action === 'optout') {
-      const entry = addOptOut({
+      const entry = await addOptOut({
         businessName: String(body.businessName || ''),
         address: String(body.address || ''),
         reason: String(body.reason || ''),
@@ -47,7 +47,7 @@ export async function POST(request: Request) {
 
     // Check opt-out status
     if (body.action === 'check-optout') {
-      const optedOut = isOptedOut(String(body.businessName || ''), String(body.address || ''));
+      const optedOut = await isOptedOut(String(body.businessName || ''), String(body.address || ''));
       return Response.json({ optedOut }, { headers: noStore() });
     }
 
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
     if (!body.businessName || !body.value) {
       return Response.json({ error: 'businessName and value are required' }, { status: 400, headers: noStore() });
     }
-    const entry = addContact({
+    const entry = await addContact({
       businessName: String(body.businessName),
       address: String(body.address || ''),
       contactType: (['phone', 'email', 'linkedin', 'website', 'other'].includes(String(body.contactType)) ? String(body.contactType) : 'other') as 'phone' | 'email' | 'linkedin' | 'website' | 'other',
@@ -78,11 +78,11 @@ export async function DELETE(request: Request) {
   if (action === 'optout') {
     const businessName = url.searchParams.get('businessName') || '';
     const address = url.searchParams.get('address') || '';
-    const ok = removeOptOut(businessName, address);
+    const ok = await removeOptOut(businessName, address);
     return Response.json({ ok }, { status: ok ? 200 : 404, headers: noStore() });
   }
 
   if (!id) return Response.json({ error: 'id required' }, { status: 400, headers: noStore() });
-  const ok = deleteContact(id);
+  const ok = await deleteContact(id);
   return Response.json({ ok }, { status: ok ? 200 : 404, headers: noStore() });
 }

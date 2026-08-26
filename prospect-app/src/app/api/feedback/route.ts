@@ -20,7 +20,7 @@ export async function GET(request: Request) {
   if (!isAuthorized(request)) return Response.json({ error: 'Unauthorized' }, { status: 401, headers: noStore() });
   const url = new URL(request.url);
   const businessName = url.searchParams.get('businessName') || undefined;
-  return Response.json(getFeedback(businessName), { headers: noStore() });
+  return Response.json(await getFeedback(businessName), { headers: noStore() });
 }
 
 export async function POST(request: Request) {
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     if (!body.businessName || !body.agreement) {
       return Response.json({ error: 'businessName and agreement are required' }, { status: 400, headers: noStore() });
     }
-    const entry = addFeedback({
+    const entry = await addFeedback({
       businessName: body.businessName,
       address: body.address || '',
       recommendationId: body.recommendationId || '',

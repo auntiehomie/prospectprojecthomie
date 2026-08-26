@@ -19,6 +19,8 @@ Interactive Next.js search for qualified PPP prospects near closing Comerica/Fif
 - Versioned draft Flagstar product catalog with human-verification flags
 - Optional server-side OpenRouter web research with citation validation and human acceptance of each finding
 - Optional server-side OpenRouter product comparison that requires evidence citations and validates structured output
+- Persistent Neon/Postgres evidence, relationship, closure, business-signal, and suppression records
+- Live Michigan ZIP search with nearest sourced closure, explainable ranking, and relative-location map
 
 ## Local development
 
@@ -29,6 +31,16 @@ npm run dev
 ```
 
 Open <http://localhost:3000>.
+
+## Persistent intelligence setup
+
+1. Provision Neon Postgres through the Vercel Marketplace.
+2. Apply `db/001_prospect_platform.sql` to the database.
+3. Set `DATABASE_URL` and `PROSPECT_APP_ACCESS_CODE`.
+4. Run `npm run db:seed` to migrate the curated PPP and OCC seed files.
+5. Review `.env.example` before using any explicit public-data discovery script.
+
+The static explorer continues to build without a database. Live ZIP search returns a clear unavailable response until the database is configured; it never silently falls back to ephemeral filesystem writes.
 
 ## Verification
 
@@ -57,9 +69,9 @@ Recommended: import the repository into Vercel and set the root directory to `pr
 - Install command: `npm ci`
 - Build command: `npm run build`
 - Output directory: leave blank (the committed `vercel.json` clears stale overrides)
-- Environment variables: optional; see `.env.example`
+- Environment variables: see `.env.example`; `DATABASE_URL` is required for live intelligence and persistent records
 
-Evidence added through the UI stays in that browser's `localStorage` until it is exported or removed. This is a useful intake foundation, not yet a durable multi-device database.
+The browser evidence workspace still supports local JSON import/export. Authenticated evidence, contact, feedback, outreach, suppression, business, branch, relationship, and signal APIs persist in Postgres for multi-device use.
 
 The optional `/api/research` and `/api/compare` routes require a server-only `OPENROUTER_API_KEY`. In production they also require `PROSPECT_APP_ACCESS_CODE`; the browser sends the code per request, while the OpenRouter key never leaves the server. By default both endpoints mirror the OpenClaw TUI's cost-first model chain: free Nemotron → GPT-5.6 Sol → DeepSeek V4 Pro. OpenRouter only advances when an earlier model errors, is unavailable/rate-limited, or refuses. `OPENROUTER_MODEL_CHAIN` changes both endpoints; `OPENROUTER_RESEARCH_MODELS` and `OPENROUTER_COMPARE_MODELS` can override one endpoint with a comma-separated chain.
 

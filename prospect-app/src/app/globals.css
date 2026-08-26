@@ -13,6 +13,26 @@
   --shadow: 0 16px 44px rgba(16, 35, 29, 0.08);
 }
 
+.zip-search-form { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(220px, 1fr) auto; gap: 1rem; align-items: end; }
+.zip-search-form .button { min-height: 44px; }
+.zip-message { margin: 1rem 0; color: var(--muted, #475467); }
+.opportunity-map { margin-top: 1rem; }
+.opportunity-map svg { display: block; width: 100%; max-height: 420px; }
+.map-background { fill: #eef4f0; stroke: #cbd9d1; }
+.map-business { fill: #4f46e5; stroke: #fff; stroke-width: 2; }
+.map-branch { fill: #dc2626; stroke: #fff; stroke-width: 3; }
+.map-legend { display: flex; gap: 1rem; margin-top: .5rem; }
+.map-legend span { display: inline-flex; gap: .4rem; align-items: center; }
+.map-legend i { width: .75rem; height: .75rem; border-radius: 50%; display: inline-block; }
+.business-dot { background: #4f46e5; } .branch-dot { background: #dc2626; }
+.map-empty { padding: 2rem; border: 1px dashed #98a2b3; border-radius: 1rem; }
+.opportunity-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-top: 1rem; }
+.opportunity-card { border: 1px solid #d0d5dd; border-radius: 1rem; padding: 1rem; background: #fff; content-visibility: auto; contain-intrinsic-size: 280px; }
+.opportunity-card > div { display: flex; flex-direction: column; }
+.opportunity-card > b { float: right; margin-top: -2.4rem; color: #344054; }
+.opportunity-card ul { padding-left: 1.25rem; }
+@media (max-width: 720px) { .zip-search-form { grid-template-columns: 1fr; } }
+
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body {
