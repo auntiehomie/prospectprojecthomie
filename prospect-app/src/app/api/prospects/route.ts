@@ -17,7 +17,7 @@ type ProspectRow = {
 };
 
 export async function GET(request: Request) {
-  if (!isAuthorized(request)) return Response.json({ error: 'Unauthorized' }, { status: 401, headers: privateHeaders });
+  if (!await isAuthorized(request)) return Response.json({ error: 'Unauthorized' }, { status: 401, headers: privateHeaders });
   const zip = new URL(request.url).searchParams.get('zip')?.trim() || '';
   if (!isMichiganZip(zip)) {
     return Response.json({ error: 'Enter a five-digit Michigan ZIP code beginning with 48.' }, { status: 400, headers: privateHeaders });

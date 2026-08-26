@@ -3,7 +3,7 @@ import { isAuthorized, privateHeaders } from '@/lib/auth';
 export const runtime = 'nodejs';
 
 export async function POST(request: Request) {
-  if (!isAuthorized(request)) return Response.json({ error: 'Unauthorized' }, { status: 401, headers: privateHeaders });
+  if (!await isAuthorized(request, { write: true })) return Response.json({ error: 'Unauthorized' }, { status: 401, headers: privateHeaders });
   const body = await request.json() as { legalName?: string };
   const legalName = body.legalName?.trim();
   if (!legalName || legalName.length > 200) {

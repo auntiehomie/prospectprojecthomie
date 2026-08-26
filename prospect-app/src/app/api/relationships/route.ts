@@ -5,7 +5,7 @@ const types = ['ppp_lender','sba_lender','ucc_secured_party','mortgage_lender','
 const confidences = ['confirmed','likely','possible','unverified'];
 
 export async function POST(request: Request) {
-  if (!isAuthorized(request)) return Response.json({ error: 'Unauthorized' }, { status: 401, headers: privateHeaders });
+  if (!await isAuthorized(request, { write: true })) return Response.json({ error: 'Unauthorized' }, { status: 401, headers: privateHeaders });
   try {
     const body = await request.json() as Record<string, string>;
     if (!body.businessId || !body.institutionName || !types.includes(body.relationshipType)
