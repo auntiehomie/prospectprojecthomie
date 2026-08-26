@@ -11,16 +11,18 @@
     "sync-data": "node scripts/sync-prospects.mjs",
     "check-data": "node scripts/check-prospects.mjs",
     "verify": "npm run check-knowledge && npm run lint && npm run build",
-    "check-knowledge": "node scripts/check-knowledge.mjs"
-    ,"db:seed": "node scripts/import-seed-data.mjs"
-    ,"db:geocode": "node scripts/geocode-records.mjs"
-    ,"discover:zip": "node scripts/discover-osm-businesses.mjs"
-    ,"import:closures": "node scripts/import-closure-csv.mjs"
+    "check-knowledge": "node scripts/check-knowledge.mjs",
+    "db:migrate": "node scripts/migrate-db.mjs",
+    "db:seed": "node scripts/import-seed-data.mjs",
+    "db:geocode": "node scripts/geocode-records.mjs",
+    "discover:zip": "node scripts/discover-osm-businesses.mjs",
+    "import:closures": "node scripts/import-closure-csv.mjs"
   },
   "engines": {
     "node": "24.x"
   },
   "dependencies": {
+    "@clerk/nextjs": "^7.8.2",
     "@neondatabase/serverless": "^1.1.0",
     "csv-parse": "^6.2.1",
     "next": "16.2.12",

@@ -2,10 +2,22 @@ import ProspectExplorer from '@/components/ProspectExplorer';
 import prospectsData from '@/data/prospects.json';
 import type { Prospect } from '@/data/types';
 import ZipOpportunitySearch from '@/components/ZipOpportunitySearch';
+import { auth } from '@clerk/nextjs/server';
+import { UserButton } from '@clerk/nextjs';
+import { redirect } from 'next/navigation';
+import { getAppMember, hasClerk } from '@/lib/auth';
 
 const prospects = prospectsData as Prospect[];
 
-export default function Home() {
+export default async function Home() {
+  const clerkEnabled = hasClerk();
+  let member = null;
+  if (clerkEnabled) {
+    const { userId } = await auth();
+    if (!userId) redirect('/sign-in');
+    member = await getAppMember();
+    if (!member) redirect('/join');
+  }
   const zipCodes = [...new Set(prospects.map((prospect) => prospect['Zip Code']))].sort();
   const branches = [...new Set(prospects.map((prospect) => prospect['Nearest Closing Branch']))].sort();
   const totalLoan = prospects.reduce(
@@ -32,9 +44,11 @@ export default function Home() {
               <small>Business opportunity intelligence</small>
             </span>
           </a>
-          <a className="source-link" href="https://data.sba.gov/dataset/ppp-foia" target="_blank" rel="noreferrer">
-            SBA data source ↗
-          </a>
+          <div className="header-actions">
+            {member?.role === 'owner' ? <a className="source-link" href="/admin/invites">Manage invitations</a> : null}
+            <a className="source-link" href="https://data.sba.gov/dataset/ppp-foia" target="_blank" rel="noreferrer">SBA data source ↗</a>
+            {clerkEnabled ? <UserButton /> : null}
+          </div>
         </div>
       </header>
 

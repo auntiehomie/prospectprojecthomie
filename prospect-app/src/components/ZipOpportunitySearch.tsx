@@ -43,7 +43,6 @@ function OpportunityMap({ results }: { results: Result[] }) {
 
 export default function ZipOpportunitySearch() {
   const [zip, setZip] = useState('48334');
-  const [accessCode, setAccessCode] = useState('');
   const [results, setResults] = useState<Result[]>([]);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -52,9 +51,7 @@ export default function ZipOpportunitySearch() {
   async function search(event: React.FormEvent) {
     event.preventDefault(); setLoading(true); setMessage('');
     try {
-      const response = await fetch(`/api/prospects?zip=${encodeURIComponent(zip)}`, {
-        headers: accessCode ? { 'X-Prospect-Access-Code': accessCode } : {}, cache: 'no-store',
-      });
+      const response = await fetch(`/api/prospects?zip=${encodeURIComponent(zip)}`, { cache: 'no-store' });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error || 'Search failed.');
       setResults(body.results); setMessage(`${body.count} reviewed business records found in ${body.zip}.`);
@@ -67,7 +64,6 @@ export default function ZipOpportunitySearch() {
       <div className="filters-heading"><div><p className="eyebrow">Live opportunity search</p><h2 id="zip-opportunity-heading">Cross-reference a Michigan ZIP with closing branches</h2></div></div>
       <form className="zip-search-form" onSubmit={search}>
         <label className="field"><span>Michigan ZIP code</span><input inputMode="numeric" pattern="48[0-9]{3}" maxLength={5} value={zip} onChange={(event) => setZip(event.target.value)} required /></label>
-        <label className="field"><span>App access code</span><input type="password" value={accessCode} onChange={(event) => setAccessCode(event.target.value)} autoComplete="off" /></label>
         <button className="button primary" type="submit" disabled={loading}>{loading ? 'Searching…' : 'Search ZIP'}</button>
       </form>
       {message ? <p className="zip-message" aria-live="polite">{message}</p> : null}

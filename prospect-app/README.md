@@ -34,11 +34,12 @@ Open <http://localhost:3000>.
 
 ## Persistent intelligence setup
 
-1. Provision Neon Postgres through the Vercel Marketplace.
-2. Apply `db/001_prospect_platform.sql` to the database.
-3. Set `DATABASE_URL` and `PROSPECT_APP_ACCESS_CODE`.
-4. Run `npm run db:seed` to migrate the curated PPP and OCC seed files.
-5. Review `.env.example` before using any explicit public-data discovery script.
+1. Provision Neon Postgres and Clerk through the Vercel Marketplace.
+2. Set `PROSPECT_BOOTSTRAP_INVITE_CODE` to a private one-time owner code.
+3. Run `npm run db:migrate`, then `npm run db:seed` with `DATABASE_URL` available.
+4. Sign up, redeem the bootstrap code once, and create member invitations at `/admin/invites`.
+5. Keep `PROSPECT_APP_ACCESS_CODE` only while migrating existing access, then remove it.
+6. Review `.env.example` before using any explicit public-data discovery script.
 
 The static explorer continues to build without a database. Live ZIP search returns a clear unavailable response until the database is configured; it never silently falls back to ephemeral filesystem writes.
 

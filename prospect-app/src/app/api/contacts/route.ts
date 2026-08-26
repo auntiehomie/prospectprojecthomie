@@ -1,16 +1,7 @@
 import { addContact, getContacts, deleteContact, addOptOut, isOptedOut, removeOptOut, getOptOuts, exportAll, getStats } from '@/lib/storage';
-import { timingSafeEqual } from 'node:crypto';
+import { isAuthorized } from '@/lib/auth';
 
 export const runtime = 'nodejs';
-
-function isAuthorized(request: Request) {
-  const expected = process.env.PROSPECT_APP_ACCESS_CODE;
-  if (!expected) return process.env.NODE_ENV !== 'production';
-  const supplied = request.headers.get('x-prospect-access-code') || '';
-  const a = Buffer.from(expected);
-  const b = Buffer.from(supplied);
-  return a.length === b.length && timingSafeEqual(a, b);
-}
 
 function noStore() {
   return { 'Cache-Control': 'no-store, private', 'X-Content-Type-Options': 'nosniff' };
@@ -18,7 +9,7 @@ function noStore() {
 
 // GET /api/contacts?businessName=X | ?action=stats | ?action=export | ?action=optouts
 export async function GET(request: Request) {
-  if (!isAuthorized(request)) return Response.json({ error: 'Unauthorized' }, { status: 401, headers: noStore() });
+  if (!await isAuthorized(request)) return Response.json({ error: 'Unauthorized' }, { status: 401, headers: noStore() });
   const url = new URL(request.url);
   const action = url.searchParams.get('action');
 
@@ -31,7 +22,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  if (!isAuthorized(request)) return Response.json({ error: 'Unauthorized' }, { status: 401, headers: noStore() });
+  if (!await isAuthorized(request, { write: true })) return Response.json({ error: 'Unauthorized' }, { status: 401, headers: noStore() });
   try {
     const body = await request.json() as Record<string, unknown>;
 
@@ -70,7 +61,7 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  if (!isAuthorized(request)) return Response.json({ error: 'Unauthorized' }, { status: 401, headers: noStore() });
+  if (!await isAuthorized(request, { write: true })) return Response.json({ error: 'Unauthorized' }, { status: 401, headers: noStore() });
   const url = new URL(request.url);
   const id = url.searchParams.get('id');
   const action = url.searchParams.get('action');

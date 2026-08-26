@@ -59,7 +59,6 @@ export default function EvidenceWorkspace({ prospect }: Props) {
   const [localEvidence, setLocalEvidence] = useState<EvidenceRecord[]>(() => loadEvidence(targetProspectId));
   const [draft, setDraft] = useState<EvidenceDraft>(emptyDraft);
   const [message, setMessage] = useState('');
-  const [accessCode, setAccessCode] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<LlmAnalysisResult | null>(null);
   const [research, setResearch] = useState<WebResearchResult | null>(null);
@@ -160,7 +159,6 @@ export default function EvidenceWorkspace({ prospect }: Props) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(accessCode ? { 'X-Prospect-Access-Code': accessCode } : {}),
         },
         body: JSON.stringify({
           businessName: prospect['Business Name'],
@@ -216,7 +214,6 @@ export default function EvidenceWorkspace({ prospect }: Props) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(accessCode ? { 'X-Prospect-Access-Code': accessCode } : {}),
         },
         body: JSON.stringify({
           prospect: {
@@ -327,10 +324,6 @@ export default function EvidenceWorkspace({ prospect }: Props) {
         <p className="intel-section-label">Optional cited web research</p>
         <p className="intel-muted">When configured, OpenRouter web search looks for official registry/site, reputable news, and official social evidence. Returned findings are drafts and are not added until you review each one.</p>
         <div className="evidence-actions">
-          <label className="field access-code-field">
-            <span>App access code (if configured)</span>
-            <input type="password" value={accessCode} onChange={(event) => setAccessCode(event.target.value)} autoComplete="off" />
-          </label>
           <button type="button" className="button primary" onClick={researchBusiness} disabled={researching}>{researching ? 'Researching…' : 'Research this business'}</button>
         </div>
         {research ? (
@@ -355,10 +348,6 @@ export default function EvidenceWorkspace({ prospect }: Props) {
         <p className="intel-section-label">Optional LLM comparison <span className="intel-badge intel-badge-partial">catalog {FLAGSTAR_PRODUCT_CATALOG.version}</span></p>
         <p className="intel-muted">The server sends the cited evidence and draft product catalog to the configured LLM. Every recommendation must cite evidence IDs. The result is not saved automatically.</p>
         <div className="evidence-actions">
-          <label className="field access-code-field">
-            <span>App access code (if configured)</span>
-            <input type="password" value={accessCode} onChange={(event) => setAccessCode(event.target.value)} autoComplete="off" />
-          </label>
           <button type="button" className="button primary" onClick={compareWithCatalog} disabled={analyzing || allEvidence.length === 0}>{analyzing ? 'Comparing…' : 'Compare evidence to products'}</button>
         </div>
         {analysis ? (

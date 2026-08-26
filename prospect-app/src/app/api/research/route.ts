@@ -1,4 +1,4 @@
-import { timingSafeEqual } from 'node:crypto';
+import { isAuthorized } from '@/lib/auth';
 import {
   normalizeUrl,
   validateWebResearch,
@@ -31,8 +31,8 @@ export async function POST(request: Request) {
       { status: 503, headers: noStoreHeaders() },
     );
   }
-  if (!isAuthorized(request)) {
-    return Response.json({ error: 'Invalid app access code.' }, { status: 401, headers: noStoreHeaders() });
+  if (!await isAuthorized(request, { write: true })) {
+    return Response.json({ error: 'Sign in with an active Prospect Project Homie account.' }, { status: 401, headers: noStoreHeaders() });
   }
 
   const clientId = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
@@ -162,15 +162,6 @@ function consumeRateLimit(clientId: string) {
   if (current.count >= MAX_REQUESTS_PER_WINDOW) return false;
   current.count += 1;
   return true;
-}
-
-function isAuthorized(request: Request) {
-  const expected = process.env.PROSPECT_APP_ACCESS_CODE;
-  if (!expected) return process.env.NODE_ENV !== 'production';
-  const supplied = request.headers.get('x-prospect-access-code') || '';
-  const expectedBuffer = Buffer.from(expected);
-  const suppliedBuffer = Buffer.from(supplied);
-  return expectedBuffer.length === suppliedBuffer.length && timingSafeEqual(expectedBuffer, suppliedBuffer);
 }
 
 function noStoreHeaders() {
