@@ -46,6 +46,43 @@ a { color: inherit; }
 button { cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: 0.55; }
 
+.investigation-hero { padding: 52px 0; color: white; background: linear-gradient(135deg, #092f24, #0d6247); }
+.investigation-hero .eyebrow { color: #a8e4c9; }
+.investigation-hero h1 { margin: 0; max-width: 850px; font: 700 clamp(2.2rem, 5vw, 4.4rem)/1 Georgia, serif; letter-spacing: -.05em; }
+.investigation-hero p:last-child { max-width: 760px; margin: 20px 0 0; color: #d9eee5; line-height: 1.65; }
+.investigation-page { padding-top: 30px; padding-bottom: 64px; }
+.investigation-layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 24px; align-items: start; }
+.investigation-sidebar { position: sticky; top: 96px; }
+.investigation-list { display: grid; gap: 8px; margin: 18px 0 24px; }
+.investigation-list button { display: grid; gap: 4px; width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: white; color: var(--ink); text-align: left; }
+.investigation-list button.selected { border-color: var(--green); background: var(--mint); }
+.investigation-list span { color: var(--muted); font-size: .78rem; }
+.new-investigation { border-top: 1px solid var(--line); padding-top: 18px; }
+.new-investigation summary { color: var(--green); font-weight: 800; cursor: pointer; }
+.compact-fields { display: grid; grid-template-columns: 1fr 70px; gap: 8px; }
+.investigation-main { display: grid; gap: 24px; min-width: 0; }
+.investigation-heading, .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.investigation-heading h1 { margin: 0; font: 700 clamp(2rem, 4vw, 3.2rem)/1 Georgia, serif; letter-spacing: -.045em; }
+.investigation-heading p:last-child { margin: 10px 0 0; color: var(--muted); }
+.section-heading { margin-bottom: 14px; }
+.guardrail-note { padding: 12px 14px; border-left: 3px solid var(--gold); border-radius: 8px; background: #fff9eb; color: #66501d; line-height: 1.55; }
+.ucc-form { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
+.ucc-form .full { grid-column: 1 / -1; }
+.ucc-form .button { justify-self: start; }
+.filing-list, .finding-grid, .hypothesis-grid { display: grid; gap: 12px; margin-top: 20px; }
+.filing-list article, .finding-grid article, .hypothesis-grid article { padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: #fbfcfb; }
+.filing-list article div { display: flex; justify-content: space-between; gap: 16px; }
+.filing-list span, .finding-grid small { color: var(--muted); font-size: .78rem; }
+.filing-list p, .finding-grid p, .hypothesis-grid p { color: var(--muted); line-height: 1.55; }
+.filing-list a, .finding-grid a { color: var(--green); font-weight: 800; text-decoration: none; font-size: .82rem; }
+.finding-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.finding-grid article { display: grid; gap: 6px; }
+.finding-grid article p { margin: 4px 0; }
+.hypothesis-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.hypothesis-grid article { display: grid; gap: 8px; }
+.hypothesis-grid article > span { width: max-content; padding: 4px 8px; border-radius: 999px; background: var(--mint); color: var(--green-dark); font-size: .7rem; font-weight: 800; }
+.hypothesis-grid p { margin: 0; }
+
 .page-shell { width: min(1220px, calc(100% - 32px)); margin: 0 auto; }
 .site-header { background: rgba(255,255,255,.96); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 20; backdrop-filter: blur(12px); }
 .header-inner, .footer-inner { min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
@@ -230,6 +267,12 @@ footer { border-top: 1px solid var(--line); background: white; color: var(--mute
   .mobile-detail { min-width: 0; }
   .data-note { grid-template-columns: 1fr; gap: 14px; }
   .footer-inner { align-items: flex-start; flex-direction: column; justify-content: center; }
+  .investigation-layout { grid-template-columns: 1fr; }
+  .investigation-sidebar { position: static; }
+  .investigation-heading, .section-heading { align-items: flex-start; flex-direction: column; }
+  .ucc-form { grid-template-columns: 1fr 1fr; }
+  .finding-grid { grid-template-columns: 1fr; }
+  .filing-list article div { flex-direction: column; }
 }
 @media (max-width: 480px) {
   .brand small { display: none; }
