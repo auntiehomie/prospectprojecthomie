@@ -45,6 +45,7 @@ export default async function Home() {
             </span>
           </a>
           <div className="header-actions">
+            <a className="source-link" href="/investigations">Business investigations</a>
             {member?.role === 'owner' ? <a className="source-link" href="/admin/invites">Manage invitations</a> : null}
             <a className="source-link" href="https://data.sba.gov/dataset/ppp-foia" target="_blank" rel="noreferrer">SBA data source ↗</a>
             {clerkEnabled ? <UserButton /> : null}
