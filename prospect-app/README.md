@@ -21,6 +21,9 @@ Interactive Next.js search for qualified PPP prospects near closing Comerica/Fif
 - Optional server-side OpenRouter product comparison that requires evidence citations and validates structured output
 - Persistent Neon/Postgres evidence, relationship, closure, business-signal, and suppression records
 - Live Michigan ZIP search with nearest sourced closure, explainable ranking, and relative-location map
+- Signed-in, user-owned business investigations with reviewed UCC filing capture
+- Separate treatment of UCC secured-party evidence, possible lending relationships, and unknown deposit relationships
+- Evidence-linked banking-needs hypotheses based on UCC collateral and cited public-web signals
 
 ## Local development
 
@@ -42,6 +45,8 @@ Open <http://localhost:3000>.
 6. Review `.env.example` before using any explicit public-data discovery script.
 
 The static explorer continues to build without a database. Live ZIP search returns a clear unavailable response until the database is configured; it never silently falls back to ephemeral filesystem writes.
+
+The `/investigations` workflow requires Clerk and Postgres. Migration `003_business_investigations.sql` adds user-owned investigations and reviewed UCC filing records. The app intentionally opens the official Michigan UCC search for human review rather than bypassing search controls or bulk-harvesting filings.
 
 ## Verification
 
